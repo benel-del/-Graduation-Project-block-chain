@@ -29,7 +29,7 @@ public class RSA {
 		this.privateKey = keyPair.getPrivate();
 	}
 
-	public static String encrypt(String data, Key key) throws Exception {
+	 public static String encrypt(String data, Key key) throws Exception {
 		Cipher cipher = Cipher.getInstance("RSA");
 		cipher.init(Cipher.ENCRYPT_MODE, key);
 		byte[] bCipher = cipher.doFinal(data.getBytes());
@@ -44,7 +44,7 @@ public class RSA {
 		byte[] bPlain = cipher.doFinal(bCipher);
 		return new String(bPlain);
 
-    }
+    } 
 	
 	public PublicKey getPublicKey() {
 		return publicKey;
@@ -52,7 +52,7 @@ public class RSA {
 	public PrivateKey getPrivateKey() {
 		return privateKey;
 	}
-	
+
 	public static PublicKey getPublicKey(String publicKey) throws Exception {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         byte[] decodedKey = Base64.decodeBase64(publicKey.getBytes());
@@ -70,12 +70,17 @@ public class RSA {
 	public static String KeyToStr(Key key) {
 		return new String(Base64.encodeBase64(key.getEncoded()));
 	}
-	
+
 	public static String sign(String data, PublicKey puKey, PrivateKey prKey) throws Exception {
 		if(puKey == null || prKey == null)
 			return null;
-		String text = RSA.encrypt(data, puKey);	// base
-		text += "||" + RSA.encrypt(""+data.hashCode(), prKey);	// signature
-		return text;
+		String signature = encrypt(""+data.hashCode(), prKey);	// Kc-(H(k))
+		String text = encrypt(data + "||" + signature.hashCode(), puKey);	// Ks+(k || H(Kc-(H(k))))
+		return text + "||" + signature;	// Ks+(k || H(Kc-(H(k)))) || Kc-(H(k))
 	}
+	
+	public static String recieve(String data, String prKey) throws Exception {
+		return RSA.decrypt(data, getPrivateKey(prKey));
+	}
+	
 }

@@ -24,6 +24,7 @@
 		<input type="text" id="state" name="state" value="communtion state: " readonly>
 		<input type="text" id="name" name="name" value="">
 		<input type="text" id="aes" name="aes" value="">
+		<input type="text" id="rsa" name="rsa" value="">
 
 		<br /><br />
 		<div class="left"><textarea id="ciphertext" name="ciphertext" readonly></textarea></div>
@@ -47,7 +48,8 @@
 			aes.setKey();
 
 			int index = log.register("client", RSA.KeyToStr(rsa.getPublicKey())) - 1;
-			String server = "server" + index;
+			//String server = "server" + index;
+			String server = "server";
 		%>
 			var webSocket = new WebSocket("<%=address%>");
 			webSocket.onopen = function(message) {
@@ -56,7 +58,7 @@
 				webSocket.send("<%=index+1%>");
 				document.getElementById("name").value = "client"+"<%=index+1%>";
 				document.getElementById("aes").value = "<%=aes.getKey_st()%>";
-				
+				document.getElementById("rsa").value = "<%=RSA.KeyToStr(rsa.getPrivateKey())%>";
 				document.getElementById("recieve").disabled = false;
 			};
 			
@@ -90,6 +92,7 @@
 			%>
 			var webSocket;
 			document.getElementById("aes").value = "<%=data.getAes()%>";
+			document.getElementById("rsa").value = "<%=data.getRsa()%>";
 			document.getElementById("name").value = "<%=data.getName()%>";
 			document.getElementById("plaintext").innerHTML = "<%=data.getPlaintext().replaceAll("\\\\", "/").replaceAll("\n", "&#10").replaceAll("\"", "\'") %>";
 			document.getElementById("state").value = "communtion state: Server Disconnect...\n";
@@ -103,6 +106,7 @@
 		
 		function disconnect_() {
 			document.getElementById("ciphertext").value = "";
+			document.getElementById("rsa").value = "";
 			document.getElementById("aes").value = "";
 			document.getElementById("name").value = "";
 			document.getElementById("recieve").disabled = 'disabled';

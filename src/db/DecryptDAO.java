@@ -8,13 +8,14 @@ public class DecryptDAO extends DB{
 		super();
 	}
 	
-	public int insertDB(String name, String aes, String plaintext) {
-		String sql = "INSERT INTO decrypt (name, aes, plaintext) VALUES (?, ?, ?)";
+	public int insertDB(String name, String aes, String rsa, String plaintext) {
+		String sql = "INSERT INTO decrypt (name, aes, rsa, plaintext) VALUES (?, ?, ?, ?)";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, name);
 			pstmt.setString(2, aes);
-			pstmt.setString(3, plaintext);
+			pstmt.setString(3, rsa);
+			pstmt.setString(4, plaintext);
 			pstmt.executeUpdate();
 			return 1;
 		} catch (Exception ex) {
@@ -32,8 +33,9 @@ public class DecryptDAO extends DB{
 				Decrypt data = new Decrypt();
 				data.setName(rs.getString(1));
 				data.setAes(rs.getString(2));
-				data.setPlaintext(rs.getString(3));
-				data.setIsUsed(rs.getInt(4));
+				data.setRsa(rs.getString(3));
+				data.setPlaintext(rs.getString(4));
+				data.setIsUsed(rs.getInt(5));
 				return data;
 			}
 		} catch(Exception e) {

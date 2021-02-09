@@ -4,6 +4,7 @@ public class Decrypt {
 	private String state;
 	private String name;
 	private String aes;
+	private String rsa;
 	private String ciphertext;
 	private String plaintext;
 	private int isUsed;
@@ -25,6 +26,12 @@ public class Decrypt {
 	}
 	public void setAes(String aes) {
 		this.aes = aes;
+	}
+	public String getRsa() {
+		return rsa;
+	}
+	public void setRsa(String rsa) {
+		this.rsa = rsa;
 	}
 	public String getCiphertext() {
 		return ciphertext;

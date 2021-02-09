@@ -14,7 +14,6 @@ import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.server.ServerEndpoint;
-import org.apache.commons.codec.binary.Base64;
 
 import security.RSA;
 import db.logDAO;
@@ -26,15 +25,15 @@ public class WebSocket {
 	private SecretKeySpec AES = null;
 	private String client = null;
 	private String server = null;
-	private String nextServer = null;
+	//private String nextServer = null;
 
 
 	public WebSocket() throws NoSuchAlgorithmException, InvalidKeySpecException{
-		/*if(log.getKey("server0") == null) {
+		if(log.getKey("server") == null) {
 			RSA rsa = new RSA();
-			log.register("server0", RSA.KeyToStr(rsa.getPublicKey()));
-			log.register_private("server0", RSA.KeyToStr(rsa.getPrivateKey()));
-		}*/
+			log.register("server", RSA.KeyToStr(rsa.getPublicKey()));
+			log.register_private("server", RSA.KeyToStr(rsa.getPrivateKey()));
+		}
 	}
 	
 	@OnOpen
@@ -50,7 +49,7 @@ public class WebSocket {
 			msg = "OK";
 		}
 		else if(AES == null) {
-			msg = aesKey(message);
+			msg = verify(message);
 		}
 		else if(message.equals("recieve")){
 			msg = sendFile();
@@ -70,31 +69,31 @@ public class WebSocket {
 	}
 
 	private void rsaKey(String message) throws Exception {
-		RSA rsa = new RSA();
+		//RSA rsa = new RSA();
 		client = "client" + message;
-		server = "server" + (Integer.parseInt(message)-1);
-		
-		nextServer = "server" + (Integer.parseInt(message));
-		log.register(nextServer, RSA.KeyToStr(rsa.getPublicKey()));
-		log.register_private(nextServer, RSA.KeyToStr(rsa.getPrivateKey()));
+		//server = "server" + (Integer.parseInt(message)-1);
+		server = "server";
+		//nextServer = "server" + (Integer.parseInt(message));
+		//log.register(nextServer, RSA.KeyToStr(rsa.getPublicKey()));
+		//log.register_private(nextServer, RSA.KeyToStr(rsa.getPrivateKey()));
 	}
 	
-	private String aesKey(String message) throws Exception {
+	private String verify(String message) throws Exception {
 		String str[] = extract(message);
-		
-		//
-		str[0] = RSA.decrypt(str[0], log.getPrivateKey(server));
-		str[1] = RSA.decrypt(str[1], log.getKey(client));
-
-		if(str[0].hashCode() == Integer.parseInt(str[1])) {
-			AES = security.AES.setKey(str[0]);
-			System.out.println("recieve AES key from Client");
-			return "";
+		String signature = str[1];	// Kc-(H(k))
+		str = extract(RSA.decrypt(str[0], log.getPrivateKey(server)));	// k, H(signature)
+		if(signature.hashCode() == Integer.parseInt(str[1])) {
+			if(str[0].hashCode() == Integer.parseInt(RSA.decrypt(signature, log.getKey(client)))) {
+				AES = security.AES.setKey(str[0]);
+				System.out.println("recieve AES key from Client");
+				return "";
+			}
+			else
+				System.out.println("recieve AES key from Client, but the key is not correct");
 		}
-		else {
-			System.out.println("recieve AES key from Client, but the key is not correct");
-			return "disconnect";
-		}
+		else
+			System.out.println("recieve message from Client, but the message is not correct");
+		return "disconnect";
 	}
 	
 	private String sendFile() throws Exception {
@@ -104,10 +103,9 @@ public class WebSocket {
 		while(Line.size() > index) {
 			tmp += Line.get(index++);
 		}
-
 		String msg = security.AES.ByteToStr(security.AES.encrypt(tmp, AES));
 		msg += "||" + (tmp + security.AES.getKey_st(AES)).hashCode();
-		//System.out.println(msg);
+		//return RSA.encrypt(msg, log.getKey(client));
 		return msg;
 	}
 	
@@ -121,6 +119,7 @@ public class WebSocket {
 			String line = "";
 			while((line = bufReader.readLine()) != null) {
 				// block chain check
+				
 				Line.add(line + "\n");
 			}
 			Line.add("END file\n");
@@ -141,6 +140,4 @@ public class WebSocket {
         str[1] = st.substring(idx + 2);
         return str;
     }
-	
-	
 }

@@ -60,4 +60,23 @@ public class AES{
     public static String ByteToStr(byte[] bt) {
     	return Base64.encodeBase64String(bt);
     }
+    
+    public static String recieve(String data, String key) throws Exception {
+    	String str[] = extract(data);
+    	String message = decrypt(StrToByte(str[0]), AES.setKey(key));
+    	if((message + key).hashCode() == Integer.parseInt(str[1]))
+    		return message;
+    	else
+    		return "Error:: data integrity";
+    }
+    
+    private static String[] extract(String st){
+		int idx = st.indexOf("||");
+        if(idx == -1)
+            return null;
+        String str[] = new String[2];
+        str[0] = st.substring(0, idx);
+        str[1] = st.substring(idx + 2);
+        return str;
+    }
 }
