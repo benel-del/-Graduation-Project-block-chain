@@ -1,7 +1,6 @@
 package db;
 
 public class Decrypt {
-	private String state;
 	private String name;
 	private String aes;
 	private String rsa;
@@ -9,12 +8,6 @@ public class Decrypt {
 	private String plaintext;
 	private int isUsed;
 	
-	public String getState() {
-		return state;
-	}
-	public void setState(String state) {
-		this.state = state;
-	}
 	public String getName() {
 		return name;
 	}

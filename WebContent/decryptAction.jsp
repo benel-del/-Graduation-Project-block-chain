@@ -5,40 +5,28 @@
 <%@ page import="java.io.PrintWriter" %>
 <% request.setCharacterEncoding("UTF-8"); %>
 <jsp:useBean id="decrypt" class="db.Decrypt" scope="page" />
-<jsp:setProperty name="decrypt" property="state"/>
 <jsp:setProperty name="decrypt" property="name"/>
 <jsp:setProperty name="decrypt" property="aes"/>
 <jsp:setProperty name="decrypt" property="rsa"/>
 <jsp:setProperty name="decrypt" property="ciphertext"/>
 
 <%
-	if(decrypt.getState().contains("connect")){
-		DecryptDAO decryptDAO = new DecryptDAO();
+	DecryptDAO decryptDAO = new DecryptDAO();
 
-		//String text = RSA.recieve(decrypt.getCiphertext(), decrypt.getRsa());	
-        String message = AES.recieve(decrypt.getCiphertext(), decrypt.getAes());
+    String message = AES.recieve(decrypt.getCiphertext(), decrypt.getAes());
 
-		int result = decryptDAO.insertDB(decrypt.getName(), decrypt.getAes(), decrypt.getRsa(), message);
-		if(result == -1){
-			PrintWriter script = response.getWriter();
-            script.println("<script>");
-            script.println("alert('데이터베이스 오류')");
-            script.println("location.href = 'index.jsp'");
-            script.println("</script>");
-		}
-		else{
-			PrintWriter script = response.getWriter();
-			script.println("<script>");
-			script.println("location.href = 'index.jsp'");
-			script.println("</script>");
-		}
-	
+	int result = decryptDAO.insertDB(decrypt.getName(), decrypt.getAes(), decrypt.getRsa(), message);
+	if(result == -1){
+		PrintWriter script = response.getWriter();
+           script.println("<script>");
+           script.println("alert('데이터베이스 오류')");
+           script.println("location.href = 'index.jsp'");
+           script.println("</script>");
 	}
 	else{
 		PrintWriter script = response.getWriter();
-           script.println("<script>");
-           script.println("alert('" + decrypt.getState() + "')");
-           script.println("location.href = 'index.jsp'");
-           script.println("</script>");
+		script.println("<script>");
+		script.println("location.href = 'index.jsp'");
+		script.println("</script>");
 	}
 %>

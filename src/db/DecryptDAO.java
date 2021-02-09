@@ -43,17 +43,4 @@ public class DecryptDAO extends DB{
 		}
 		return null; //데이터베이스 오류
 	}
-	
-	/*public int update(String name) {
-		String sql = "UPDATE decrypt SET isUsed = 1 WHERE name = ? && isUsed = 0;";
-		try {
-			PreparedStatement pstmt=conn.prepareStatement(sql);
-			pstmt.setString(1, name);
-			pstmt.executeUpdate();
-			return 1;
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		return -1; //데이터베이스 오류
-	}*/
 }
