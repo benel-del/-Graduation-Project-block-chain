@@ -11,7 +11,7 @@ public class DB {
 	
 	public DB() {
 		try {
-			String dbURL = "jdbc:mysql://localhost:3306/block?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&useSSL=false";
+			String dbURL = "jdbc:mysql://localhost:3306/block?";
 			String dbID = "root";
 			String dbPassword = "Benel&Bende1";
 			Class.forName("com.mysql.cj.jdbc.Driver");	

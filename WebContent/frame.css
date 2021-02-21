@@ -1,14 +1,27 @@
 body{
 	padding: 1%;
 }
-
-#state {
-width: 250px
+div.fileUpload {
+	padding: 8px 20px;
+	border: black solid 1px;
 }
-
+input {
+	padding: 4px;
+	margin: auto 5px;
+}
+#file{
+	width: 250px;
+}
+#password{
+	width: 200px;
+}
+#state {
+	width: 500px;
+	float: right;
+}
 div.left {
 	width: 45%;
-	height:40%;
+	height:500px;
 	float: left;
 }
 div.center {
@@ -20,12 +33,18 @@ div.center {
 }
 div.right {
 	width: 45%;
-	height:40%;
+	height:500px;
 	float: right;
 }
 
 textarea {
 	width: 100%;
-	height: 600px;
+	height: 100%;
 	overflow: visible;
+}
+
+button {
+	margin: 10px 0px;
+	padding: 8px;
+	width: 100px;
 }
