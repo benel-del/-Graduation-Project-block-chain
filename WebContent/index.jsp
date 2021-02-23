@@ -37,11 +37,12 @@
 			<input type="file" name="fileUpload" id="file" class="upload" accept="text/css, text/html, text/javascript, text/plain">
 			<label for="password">password :</label>
 			<input type="text" name="password" id="password" class="upload" autofocus>
-			<input type="text" id="state" value="No files currently selected for upload" readonly>
+			<input type="text" id="state" class="upload" value="No files currently selected for upload" readonly>
 		</div>
 		<br><br>
 		<div class="left">
 			<button id="upload">UPLOAD</button>
+			<input type="text" id="stateUpload" class="loadState" readonly>
 			<textarea id="original" name="original" readonly></textarea>
 		</div>
 	</form>
@@ -49,10 +50,16 @@
 	<div class="center"><button onclick="actionFile();" id="action">>></button></div>
 	<div class="right">
 		<button id="download" class="download">DOWNLOAD</button>
+		<input type="text" id="stateDownload" class="loadState" readonly>
 		<textarea id="result" readonly></textarea>
 	</div>
 	
 <script type="text/javascript">
+	window.onkeydown = function(){
+		var kcode = event.keyCode;
+		if(kcode == 116)
+			history.replaceState({}, null, "index.jsp");
+	}
 	var isFile = false;
 	var isPassword = false;
 	
@@ -68,7 +75,7 @@
 		String tmp = "";
 		ArrayList<String> Line;
 		%>
-		document.getElementById('state').value = "File name: <%=file1.getOriginalName()%>, file size: <%=file1.getFileSize()%>";
+		document.getElementById('stateUpload').value = "File name: <%=file1.getOriginalName()%>, file size: <%=file1.getOriginalFileSize()%>";
 		for(var i = 0; i < upload.length; i++)
 			upload.item(i).disabled = 'disabled';
 		uploadFile();
@@ -89,6 +96,7 @@
 		}
 		
 		function actionFile(){
+			document.getElementById('stateDownload').value = "File name: <%=file1.getOriginalName()%>, file size: <%=file1.getResultFileSize()%>";
 			for(var i = 0; i < download.length; i++)
 				download.item(i).disabled = false;
 			<%
@@ -100,14 +108,9 @@
 				document.getElementById('result').value += "<%=tmp.replaceAll("\\\\", "/").replaceAll("\"", "\'")%>\n";
 			<%
 			}
+			%>
 		}
 		
-			document.getElementById("rsa").value = "";
-			document.getElementById("aes").value = "";
-			document.getElementById("name").value = "";
-			document.getElementById("recieve").disabled = 'disabled';
-			document.getElementById("reconnect").disabled = false;
-			document.getElementById("disconnect").disabled = 'disabled';
 		document.getElementById("download").addEventListener("click", function(event) {
             event.preventDefault();// a 태그의 기본 동작을 막음
             event.stopPropagation();// 이벤트의 전파를 막음=

@@ -4,7 +4,8 @@ public class file {
 	String originalName;
 	String systemName;
 	String password;
-	String fileSize;
+	String originalFileSize;
+	String resultFileSize;
 	String fileOption;
 	
 	public String getOriginalName() {
@@ -25,11 +26,17 @@ public class file {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getFileSize() {
-		return fileSize;
+	public String getOriginalFileSize() {
+		return originalFileSize;
 	}
-	public void setFileSize(String fileSize) {
-		this.fileSize = fileSize;
+	public void setOriginalFileSize(String originalFileSize) {
+		this.originalFileSize = originalFileSize;
+	}
+	public String getResultFileSize() {
+		return resultFileSize;
+	}
+	public void setResultFileSize(String resultFileSize) {
+		this.resultFileSize = resultFileSize;
 	}
 	public String getFileOption() {
 		return fileOption;

@@ -14,14 +14,14 @@ public class fileDAO extends DB{
 		super();
 	}
 	
-	public int insert(String original, String name, String pw, String size, String option) {
-		String sql = "INSERT INTO file VALUES(?, ?, ?, ?, ?);";
+	public int insert(String original, String name, String pw, String originalSize, String option) {
+		String sql = "INSERT INTO file(originalName, systemName, password, originalFileSize, fileOption) VALUES(?, ?, ?, ?, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, original);
 			pstmt.setString(2, name);
 			pstmt.setString(3, pw);
-			pstmt.setString(4, size);
+			pstmt.setString(4, originalSize);
 			pstmt.setString(5, option);
 			pstmt.executeUpdate();
 			return 1;
@@ -42,14 +42,29 @@ public class fileDAO extends DB{
 				f.setOriginalName(rs.getString(1));
 				f.setSystemName(rs.getString(2));
 				f.setPassword(rs.getString(3));
-				f.setFileSize(rs.getString(4));
-				f.setFileOption(rs.getString(5));
+				f.setOriginalFileSize(rs.getString(4));
+				f.setResultFileSize(rs.getString(5));
+				f.setFileOption(rs.getString(6));
 				return f;
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		return null;	// db error
+	}
+	
+	public int update(String name, String resultSize) {
+		String sql = "UPDATE file SET resultFileSize = ? WHERE systemName = ?;";
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, resultSize);
+			pstmt.setString(2, name);
+			pstmt.executeUpdate();
+			return 1;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return -1;	// db error
 	}
 	
 	public ArrayList<String> read(String name) {
@@ -73,7 +88,8 @@ public class fileDAO extends DB{
 	
 	public ArrayList<String> readResult(String name) {
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "C:\\JSP\\projects\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\block\\downloadFile\\" + name;
+		// uploadFile >> downloadFile
+		String path = "C:\\JSP\\projects\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\block\\uploadFile\\" + name;
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);

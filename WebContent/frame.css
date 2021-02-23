@@ -16,8 +16,11 @@ input {
 	width: 200px;
 }
 #state {
-	width: 500px;
+	width: 400px;
 	float: right;
+}
+.loadState{
+	width: 400px;
 }
 div.left {
 	width: 45%;
