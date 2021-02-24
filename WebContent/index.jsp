@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.net.URLDecoder"%>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="security.AES" %>
 <%@ page import="security.RSA" %>
@@ -7,6 +8,7 @@
 <%@ page import="db.logDAO" %>
 <%@ page import="file.file" %>
 <%@ page import="file.fileDAO" %>
+<%@ page import="java.io.File" %>
 
 <!DOCTYPE html>
 <html>
@@ -22,7 +24,7 @@
 	String option = "";
 	boolean upload = false;
 	if(request.getParameter("file") != null){
-		file = request.getParameter("file");
+		file = URLDecoder.decode(request.getParameter("file"), "UTF-8");
 		upload = true;
 		file1 = f.getFileInfo(file);
 		option = file1.getFileOption();
@@ -32,14 +34,14 @@
 <body>
 	<form method="post" action="fileUpload.jsp" enctype="Multipart/form-data">
 		<div class="fileUpload">
-			<input type="radio" name="option" class="upload" value="encrypt" checked>encrypt
-			<input type="radio" name="option" class="upload" value="decrypt">decrypt
-			<input type="file" name="fileUpload" id="file" class="upload" accept="text/css, text/html, text/javascript, text/plain">
+			<input type="radio" name="option" class="upload" id="encrypt" value="encrypt" checked onclick="radio(0);"><label for="encrypt">encrypt</label>
+			<input type="radio" name="option" class="upload" id="decrypt" value="decrypt" onclick="radio(1);"><label for="decrypt">decrypt</label>
+			<input type="file" name="fileUpload" id="file" class="upload" required accept="text/css, text/html, text/javascript, text/plain">
 			<label for="password">password :</label>
-			<input type="text" name="password" id="password" class="upload" autofocus>
+			<input type="text" name="password" id="password" class="upload" maxlength="20" placeholder="5~20 영어" pattern="[A-Za-z]+" autofocus required>
 			<input type="text" id="state" class="upload" value="No files currently selected for upload" readonly>
 		</div>
-		<br><br>
+		<p id="format">DECRYPT FILE MUST BE "_enc.txt" FORMAT</p><br>
 		<div class="left">
 			<button id="upload">UPLOAD</button>
 			<input type="text" id="stateUpload" class="loadState" readonly>
@@ -55,11 +57,9 @@
 	</div>
 	
 <script type="text/javascript">
-	window.onkeydown = function(){
-		var kcode = event.keyCode;
-		if(kcode == 116)
-			history.replaceState({}, null, "index.jsp");
-	}
+	history.replaceState({}, null, "index.jsp");
+
+
 	var isFile = false;
 	var isPassword = false;
 	
@@ -73,12 +73,20 @@
 	if(upload){
 		int index = 0;
 		String tmp = "";
+		String nfile = "";
 		ArrayList<String> Line;
 		%>
 		document.getElementById('stateUpload').value = "File name: <%=file1.getOriginalName()%>, file size: <%=file1.getOriginalFileSize()%>";
 		for(var i = 0; i < upload.length; i++)
 			upload.item(i).disabled = 'disabled';
 		uploadFile();
+		
+		<%
+		if(option.equals("encrypt"))
+			nfile = file.substring(0, file.length()-4) + "_" + option.substring(0, 3) + ".txt";
+		else if(option.equals("decrypt"))
+			nfile = file.substring(0, file.length()-8) + ".txt";
+		%>
 		
 		function uploadFile(){
 			document.getElementById('original').value = "";
@@ -96,12 +104,14 @@
 		}
 		
 		function actionFile(){
-			document.getElementById('stateDownload').value = "File name: <%=file1.getOriginalName()%>, file size: <%=file1.getResultFileSize()%>";
+			document.getElementById("action").disabled = 'disabled';
+			
+			document.getElementById('stateDownload').value = "File name: <%=nfile%>, file size: <%=file1.getResultFileSize()%>";
 			for(var i = 0; i < download.length; i++)
 				download.item(i).disabled = false;
 			<%
 			index = 0;
-			Line = f.readResult(file);
+			Line = f.read(nfile);
 			while(Line.size() > index) {
 				tmp = Line.get(index++);
 			%>
@@ -114,8 +124,7 @@
 		document.getElementById("download").addEventListener("click", function(event) {
             event.preventDefault();// a 태그의 기본 동작을 막음
             event.stopPropagation();// 이벤트의 전파를 막음=
-            var fName = encodeURIComponent("<%=file%>");
-            window.location.href ="fileDownload.jsp?file=" + fName;
+            window.location.href ="fileDownload.jsp?file=<%=nfile%>";
         });
 
 	<%
@@ -177,6 +186,13 @@
 				document.getElementById("upload").disabled = 'disabled';
 			}
 		}
+		
+		function radio(index){
+			if(index == 1)
+				document.getElementById("format").style.visibility = 'visible';
+			else if(index == 0)
+				document.getElementById("format").style.visibility = 'hidden';
+		}
 	<%
 	}
 	%>
@@ -184,8 +200,17 @@
 	function init(){
 		document.getElementById("upload").disabled = 'disabled';
 		document.getElementById("action").disabled = 'disabled';
+		document.getElementById("format").style.visibility = 'hidden';
 		for(var i = 0; i < download.length; i++)
 			download.item(i).disabled = 'disabled';
+		<%
+		String path = "C:\\JSP\\projects\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\block\\uploadFile";
+		String[] fileNameOfPath = new File(path).list();
+		for(int i = 0; i < fileNameOfPath.length; i++){
+			System.out.println("delete:" + fileNameOfPath[i]);
+			new File(path + "\\" + fileNameOfPath[i]).delete();
+		}
+		%>
 	}
 	</script>
 </body>

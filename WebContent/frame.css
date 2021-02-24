@@ -51,3 +51,10 @@ button {
 	padding: 8px;
 	width: 100px;
 }
+
+p {
+	color: red;
+	font-size: 1.0em;
+	font-weight: bold;
+	font-family: monospace; 
+}

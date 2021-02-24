@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=EUC-KR" pageEncoding="EUC-KR"%>
+<%@ page language="java" contentType="text/html; charset=EUC-KR" pageEncoding="UTF-8"%>
 <%@page import="java.io.File" %>
 <%@page import="java.io.FileInputStream"%>
 <%@page import="java.net.URLEncoder"%>
@@ -27,7 +27,7 @@
 		sMimeType = "application.octec-stream";
 	response.setContentType(sMimeType);
 	
-	String sEncoding = new String(file.getBytes("euc-kr"), "8859_1");
+	String sEncoding = new String(file.getBytes("utf-8"), "8859_1");
 	sEncoding = URLEncoder.encode(sEncoding, "utf-8");
 	
 	response.setHeader("Content-Disposition", "attachment;filename="+sEncoding);
@@ -39,7 +39,6 @@
 		
 	out2.flush();
 	out2.close();
-	in.close();
-	
+	in.close();	
 %>
 </html>
