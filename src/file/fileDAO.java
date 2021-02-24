@@ -1,21 +1,34 @@
 package file;
-import db.DB;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 
-public class fileDAO extends DB{
+public class fileDAO {
+	protected Connection conn;
+	protected ResultSet rs;
+	
 	public fileDAO(){
-		super();
+		try {
+			String dbURL = "jdbc:mysql://localhost:3306/block?";
+			String dbID = "root";
+			String dbPassword = "Benel&Bende1";
+			Class.forName("com.mysql.cj.jdbc.Driver");	
+			conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public int insert(String original, String name, String pw, String originalSize, String option) {
-		String sql = "INSERT INTO file(originalName, systemName, password, originalFileSize, fileOption) VALUES(?, ?, ?, ?, ?);";
+		String sql = "INSERT INTO file(originalName, systemName, password, originalFileSize, resultFileSize, fileOption) VALUES(?, ?, ?, ?, 0, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, original);
@@ -54,7 +67,7 @@ public class fileDAO extends DB{
 	}
 	
 	public int update(String name, String resultSize, String option) {
-		String sql = "UPDATE file SET resultFileSize = ? WHERE systemName = ? AND resultFileSize = NULL AND fileOption = ?;";
+		String sql = "UPDATE file SET resultFileSize = ? WHERE systemName = ? AND resultFileSize = 0 AND fileOption = ?;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, resultSize);

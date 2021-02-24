@@ -2,10 +2,6 @@
 <%@ page import="java.net.URLDecoder"%>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="security.AES" %>
-<%@ page import="security.RSA" %>
-<%@ page import="db.Decrypt" %>
-<%@ page import="db.DecryptDAO" %>
-<%@ page import="db.logDAO" %>
 <%@ page import="file.file" %>
 <%@ page import="file.fileDAO" %>
 <%@ page import="java.io.File" %>

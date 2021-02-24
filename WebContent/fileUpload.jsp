@@ -17,7 +17,6 @@
 	PrintWriter script = response.getWriter();
 	request.setCharacterEncoding("UTF-8");
 	String uploadPath = getServletContext().getRealPath("/uploadFile");
-	System.out.println(uploadPath);
 	int maxSize = 1024 *1024 *10;// 한번에 올릴 수 있는 파일 용량 : 10M로 제한
 	String newName = "";
 	String fileName = "";
@@ -36,7 +35,6 @@
 			File file = multi.getFile(name);
 			long fileSize = file.length();
 
-			
 			if(option.equals("decrypt") && fileName.substring(fileName.length()-8, fileName.length()-4).equals("_enc") == false){
 				script.println("<script>");
 				script.println("alert('decrypt file type error!')");
@@ -58,7 +56,7 @@
 				String newPath = uploadPath + "\\" + newName;
 				File resultFile = new File(newPath);
 				resultFile.createNewFile();
-				System.out.println(newPath );
+				System.out.println(newPath);
 				FileWriter fw = new FileWriter(newPath);
 	 
 				int index = 0;
