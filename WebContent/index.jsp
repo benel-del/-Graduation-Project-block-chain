@@ -6,6 +6,8 @@
 <%@ page import="file.fileDAO" %>
 <%@ page import="java.io.File" %>
 
+<%@ page import="security.test" %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,6 +16,8 @@
 <title>Insert title here</title>
 </head>
 <%
+	test ts = new test();
+
 	fileDAO f = new fileDAO();
 	file file1 = null;
 	String file = "";
