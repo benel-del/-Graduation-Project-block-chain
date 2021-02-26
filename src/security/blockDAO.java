@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -31,48 +30,54 @@ public class blockDAO {
 	public void init() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException{
 		rsa = new RSA();
 		rsa.setKey();
-		String path = "C:\\JSP\\projects\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\block\\publicKey.txt";
-		FileWriter fw = new FileWriter(path);
-		fw.write(rsa.KeyToStr(rsa.getPublicKey()) + "\n");
-		fw.close();
+	}
+	
+	public void updateChain(String file) throws Exception {	// called by test.java
+		int index = getIndex(file);
+		if(index == -1)
+			index = newChain(file);
+		
+		int i = files.get(index).lastIndex;
+		ArrayList<String> Line = readLogFile(file);
+		for(int j; i < Line.size(); i++) {
+			String str = "";
+			for(j = 0; j < 5 && i < Line.size(); j++)
+				str += Line.get(i++);
+			if(j >= 5) {
+				chain.get(index).add(new block(sign(index), str));	// create block
+				files.get(index).setLastIndex(i);
+			}
+		}
 	}
 
-	public block createBlock(String file) throws Exception {
-		block b = null;
+	private int newChain(String file) {
+		int index = files.size();
+		files.add(new fileInfo(file, 0));
+		chain.add(new ArrayList<block>());
+		chain.get(index).add(new block("START", file));
+		return index;
+	}
+	
+	public ArrayList<block> getChain(String file) throws NumberFormatException, Exception{	// called by test.jsp
 		int index = getIndex(file);
-		if(index != -1) {
-			String str = content(file);
-			if(!str.equals("")) {
-				b = new block(sign(index), str);
-				System.out.println("[blockDAO.java] add chain: " + file);
+		ArrayList<block> b = chain.get(index);
+		for(int i = 1; i < b.size(); i++){
+			int dec = Integer.parseInt(rsa.decrypt(b.get(i).sign, rsa.getPublicKey()));
+			int hash = (b.get(i-1).sign + "||" + b.get(i-1).content).hashCode();
+			if(dec != hash){	// verification
+				System.out.println("[hashcode] block chain verification - error");
+				return null;
 			}
-			else
-				return b;
 		}
-		else {
-			index = files.size();
-			files.add(new fileInfo(file, 0));
-			System.out.println("[blockDAO.java] new files, size: " + files.size());
-			System.out.println("[blockDAO.java] files(" + index + ") : " + files.get(index).name);
-			System.out.println("[blockDAO.java] create new chain: " + file);
-			chain.add(new ArrayList<block>());
-			b = new block("START", file);
-		}
-		chain.get(index).add(b);
-		System.out.println("[blockDAO.java] chain size: " + chain.get(index).size());
 		return b;
 	}
 	
-	public ArrayList<block> getChainContents(String file){
-		int index = getIndex(file);
-		return chain.get(index);
-	}
-	
-	public int isFile(String file) {
+	public int isFile(String file) {	// called by test.jsp
 		int index = getIndex(file);
 		//System.out.println("[blockDAO.java] check isFile: " + file + " - " + index);
 		return index;
 	}
+	
 	private int getIndex(String name) {
 		for(int i = 0; i < files.size(); i++) {
 			if(files.get(i).name.equals(name)) {
@@ -89,23 +94,47 @@ public class blockDAO {
 		return rsa.encrypt((b.sign + "||" + b.content).hashCode() + "", rsa.getPrivateKey());
 	}
 	
-	private String content(String file) {
-		int index = getIndex(file);
-		int lastIndex = files.get(index).lastIndex;
-		ArrayList<String> strs = readFile(file);
-		String str = "";
-		/*for(int i = 0; i < 5 && lastIndex < strs.size(); i++) {	// 한 블록 당 5문장
-			str += strs.get(lastIndex++);
-		}*/
-		if(lastIndex < strs.size())	// 한 블록 당 1줄
-			str = strs.get(lastIndex++);
-		files.get(index).setLastIndex(lastIndex);
-		return str;
+	public ArrayList<String> readUpdateFile(){	// called by test.java
+		ArrayList<String> Line = new ArrayList<>();
+		String path = "update.txt";
+		try {
+			File file = new File(path);
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufReader = new BufferedReader(fileReader);
+			String line = "";
+			while((line = bufReader.readLine()) != null) {
+				Line.add(line);
+			}
+		}catch(FileNotFoundException e) {
+			Line.add("Error:: file not found - " + path);
+		}catch(IOException e) {
+			System.out.println(e);
+		}
+		return Line;
 	}
 	
-	public ArrayList<String> readFile(String filename) {
+	public ArrayList<String> readAllFile(){	// called by test.jsp
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "C:\\JSP\\Tomcat 9.0\\logs\\" + filename;	// 경로 어디?
+		String path = "files.txt";
+		try {
+			File file = new File(path);
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufReader = new BufferedReader(fileReader);
+			String line = "";
+			while((line = bufReader.readLine()) != null) {
+				Line.add(line);
+			}
+		}catch(FileNotFoundException e) {
+			Line.add("Error:: file not found - " + path);
+		}catch(IOException e) {
+			System.out.println(e);
+		}
+		return Line;
+	}
+	
+	public ArrayList<String> readLogFile(String filename) {
+		ArrayList<String> Line = new ArrayList<>();
+		String path = "C:\\JSP\\Tomcat 9.0\\logs\\" + filename;
 		System.out.println("[blockDAO] readFile path: "  + path);
 		try {
 			File file = new File(path);
@@ -123,11 +152,4 @@ public class blockDAO {
 		return Line;
 	}
 	
-	public String readKey() throws IOException {
-		String path = "C:\\JSP\\projects\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\block\\publicKey.txt";
-		File key = new File(path);
-		BufferedReader bufReader = new BufferedReader(new FileReader(key));
-		return bufReader.readLine();
-		
-	}
 }

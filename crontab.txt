@@ -1,0 +1,5 @@
+find /usr/local/lib/apache-tomcat-9.0.43/logs -name "catalina.*" -mmin -2 -ls > update.txt
+find /usr/local/lib/apache-tomcat-9.0.43/logs -name "localhost_access_log.*" -mmin -2 -ls >> update.txt
+
+find /usr/local/lib/apache-tomcat-9.0.43/logs -name "catalina.*" -ls > files.txt
+find /usr/local/lib/apache-tomcat-9.0.43/logs -name "localhost_access_log.*" -ls >> files.txt
