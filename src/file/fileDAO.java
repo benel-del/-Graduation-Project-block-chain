@@ -83,7 +83,7 @@ public class fileDAO {
 	
 	public ArrayList<String> read(String name) {
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "C:\\JSP\\projects\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\block\\uploadFile\\" + name;
+		String path = "/home/centos/eclipse-workspace/block/WebContent/uploadFile/" + name;
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);

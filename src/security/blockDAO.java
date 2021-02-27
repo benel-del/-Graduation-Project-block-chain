@@ -96,7 +96,7 @@ public class blockDAO {
 	
 	public ArrayList<String> readUpdateFile(){	// called by test.java
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "update.txt";
+		String path = "/home/centos/eclipse-workspace/block/update.txt";
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -115,7 +115,7 @@ public class blockDAO {
 	
 	public ArrayList<String> readAllFile(){	// called by test.jsp
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "files.txt";
+		String path = "/home/centos/eclipse-workspace/block/files.txt";
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -134,7 +134,7 @@ public class blockDAO {
 	
 	public ArrayList<String> readLogFile(String filename) {
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "C:\\JSP\\Tomcat 9.0\\logs\\" + filename;
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/logs" + filename;
 		System.out.println("[blockDAO] readFile path: "  + path);
 		try {
 			File file = new File(path);
