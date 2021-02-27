@@ -13,9 +13,10 @@
 <%
 blockDAO block = new blockDAO();
 ArrayList<String> files = block.readAllFile();		// all files
-String file  = "catalina.2021-02-26.log";	// sample
+//String file  = "catalina.2021-02-26.log";	// sample
+String file = files.get(0);
 %>
-<textarea id="result" readonly style="width: 95%; height: 650px"></textarea>
+<textarea id="result" readonly style="width: 95%; height: 650px"><%=file %></textarea>
 <script type="text/javascript">
 	<%
 	if(block.isFile(file) != -1){

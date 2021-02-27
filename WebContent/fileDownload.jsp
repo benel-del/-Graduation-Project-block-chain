@@ -16,7 +16,7 @@
 	String file = request.getParameter("file");
 	String savePath = "uploadFile";
 	String sDownPath = getServletContext().getRealPath(savePath);
-	String sFilePath = sDownPath + "\\" + file;
+	String sFilePath = sDownPath + "/" + file;
 	
 	File outputFile = new File(sFilePath);
 	FileInputStream in = new FileInputStream(outputFile);

@@ -53,7 +53,7 @@
 				else if(option.equals("decrypt"))
 					newName = newName.substring(0, newName.length()-4) + ".txt";
 				
-				String newPath = uploadPath + "\\" + newName;
+				String newPath = uploadPath + "/" + newName;
 				File resultFile = new File(newPath);
 				resultFile.createNewFile();
 				System.out.println(newPath);

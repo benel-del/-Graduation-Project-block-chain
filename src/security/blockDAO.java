@@ -10,7 +10,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 
 public class blockDAO {
-	
 	class fileInfo{
 		String name;
 		int lastIndex;
@@ -96,7 +95,7 @@ public class blockDAO {
 	
 	public ArrayList<String> readUpdateFile(){	// called by test.java
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/home/centos/eclipse-workspace/block/update.txt";
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/update.txt";
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -115,7 +114,7 @@ public class blockDAO {
 	
 	public ArrayList<String> readAllFile(){	// called by test.jsp
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/home/centos/eclipse-workspace/block/files.txt";
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/files.txt";
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -134,7 +133,7 @@ public class blockDAO {
 	
 	public ArrayList<String> readLogFile(String filename) {
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/logs" + filename;
+		String path = filename;
 		System.out.println("[blockDAO] readFile path: "  + path);
 		try {
 			File file = new File(path);

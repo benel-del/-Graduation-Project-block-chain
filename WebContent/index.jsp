@@ -16,8 +16,6 @@
 <title>Insert title here</title>
 </head>
 <%
-	test ts = new test();
-
 	fileDAO f = new fileDAO();
 	file file1 = null;
 	String file = "";
@@ -130,6 +128,12 @@
 	<%
 	}
 	else{
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile";
+		String[] fileNameOfPath = new File(path).list();
+		for(int i = 0; i < fileNameOfPath.length; i++){
+			System.out.println("delete:" + fileNameOfPath[i]);
+			new File(path + "/" + fileNameOfPath[i]).delete();
+		}
 	%>
 		inputF.addEventListener("change", (evt) => {
 			const file = evt.target.files[0];
@@ -203,14 +207,10 @@
 		document.getElementById("format").style.visibility = 'hidden';
 		for(var i = 0; i < download.length; i++)
 			download.item(i).disabled = 'disabled';
-		<%
-		String path = "C:\\JSP\\projects\\.metadata\\.plugins\\org.eclipse.wst.server.core\\tmp0\\wtpwebapps\\block\\uploadFile";
-		String[] fileNameOfPath = new File(path).list();
-		for(int i = 0; i < fileNameOfPath.length; i++){
-			System.out.println("delete:" + fileNameOfPath[i]);
-			new File(path + "\\" + fileNameOfPath[i]).delete();
-		}
-		%>
+		document.getElementById("stateUpload").value = "";
+		document.getElementById("stateDownload").value = "";
+		document.getElementById("original").value = "";
+		document.getElementById("result").value = "";
 	}
 	</script>
 </body>

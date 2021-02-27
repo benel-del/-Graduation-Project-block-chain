@@ -8,7 +8,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class test {
-	public test() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+	public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 		blockDAO dao = new blockDAO();
 		int sleepSec = 60;
 		//String file  = "catalina.2021-02-26.log";

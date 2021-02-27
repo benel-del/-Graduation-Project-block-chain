@@ -83,7 +83,7 @@ public class fileDAO {
 	
 	public ArrayList<String> read(String name) {
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/home/centos/eclipse-workspace/block/WebContent/uploadFile/" + name;
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile/" + name;
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
