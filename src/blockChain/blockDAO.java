@@ -23,7 +23,8 @@ public class blockDAO {
 			BufferedReader bufReader = new BufferedReader(fileReader);
 			String line = "";
 			while((line = bufReader.readLine()) != null) {
-				Line.add(line);
+				if(line.contains("/block/index.jsp") || line.contains("/block/fileUpload.jsp") || line.contains("/block/fileDownload.jsp"))
+					Line.add(line);
 			}
 			bufReader.close();
 		}catch(FileNotFoundException e) {
