@@ -6,7 +6,7 @@
 <%@ page import="file.fileDAO" %>
 <%@ page import="java.io.File" %>
 
-<%@ page import="security.test" %>
+<%@ page import="blockChain.test" %>
 
 <!DOCTYPE html>
 <html>

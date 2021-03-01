@@ -48,7 +48,11 @@ public class RSA {
 		byte[] bPlain = cipher.doFinal(bCipher);
 		return new String(bPlain);
 
-    } 
+    }
+	
+	public void setPublicKey(String key) throws Exception {
+		this.publicKey = getPublicKey(key);
+	}
 
 	public PublicKey getPublicKey() {
 		return publicKey;
@@ -57,7 +61,7 @@ public class RSA {
 		return privateKey;
 	}
 
-	public PublicKey getPublicKey(String publicKey) throws Exception {
+	private PublicKey getPublicKey(String publicKey) throws Exception {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         Decoder decoder = Base64.getDecoder();
         byte[] decodedKey = decoder.decode(publicKey.getBytes());

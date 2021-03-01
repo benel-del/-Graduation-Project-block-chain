@@ -92,6 +92,7 @@ public class fileDAO {
 			while((line = bufReader.readLine()) != null) {
 				Line.add(line);
 			}
+			bufReader.close();
 		}catch(FileNotFoundException e) {
 			Line.add("Error:: file not found - " + path);
 		}catch(IOException e) {

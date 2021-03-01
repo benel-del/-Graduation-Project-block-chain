@@ -1,2 +1,0 @@
-102656667   16 -rw-r-----   1 root     root        14039  2월 18 14:48 /usr/local/lib/apache-tomcat-9.0.43/logs/catalina.2021-02-18.log
-102663455    4 -rw-r-----   1 root     root         2858  2월 18 17:07 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-18.txt
