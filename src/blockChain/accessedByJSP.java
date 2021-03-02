@@ -47,13 +47,13 @@ public class accessedByJSP extends blockDAO {
 			String line = "";
 			String str = "";
 			while((line = bufReader.readLine()) != null) {
+				str += line + "\n";
+				index++;
 				if(index == 6) {
 					Line.add(str);
 					str = "";
 					index = 0;
 				}
-				str += line + "\n";
-				index++;
 			}
 			bufReader.close();
 		}catch(FileNotFoundException e) {

@@ -38,6 +38,8 @@ if(request.getParameter("file") != null){
 	<%
 		ArrayList<block> content = block.getChain(file);
 		ArrayList<String> originalFile = block.readLogFile(file);
+		out.println("<tr><th>content size: " + content.size());
+		out.println("original size: " + originalFile.size() + "</th></tr>");
 		int k = 0;
 		for(int i = 0; i < content.size(); i++){
 			String[] str = content.get(i).content.split("\n");
@@ -59,7 +61,7 @@ if(request.getParameter("file") != null){
 			<%
 			}
 		}
-	%>
+		%>
 	</table>
 <%
 	}
