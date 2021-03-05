@@ -16,7 +16,7 @@ public class blockDAO {
 	public ArrayList<String> readLogFile(String filename) {
 		ArrayList<String> Line = new ArrayList<>();
 		String path = filename;
-		System.out.println("[readLogFile] readFile path: "  + path);
+		//System.out.println("[readLogFile] readFile path: "  + path);
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);

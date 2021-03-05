@@ -17,7 +17,7 @@ public class accessedByJSP extends blockDAO {
 	}
 	
 	public ArrayList<block> getChain(String file) throws NumberFormatException, Exception{
-		String[] str = file.split("/");		
+		String[] str = file.split("/");
 		ArrayList<String> s = readBlockFile(str[6]);
 		ArrayList<block> b = new ArrayList<>();
 		for(int i = 1; i < s.size(); i++){
@@ -25,13 +25,20 @@ public class accessedByJSP extends blockDAO {
 			int dec = Integer.parseInt(rsa.decrypt(strs[0], rsa.getPublicKey()));
 			int hash = s.get(i-1).hashCode();
 			if(dec != hash){	// verification
-				System.out.println("[hashcode] block chain verification - error");
-				return null;
+				b.add(new block("","[hashcode error] " + str[6]));
+				b.add(new block("", "pre block: " + s.get(i-1)));
+				b.add(new block("", "now block sign: " + strs[0]));
+				break;
 			}
 			else {
-				b.add(new block(strs[0], strs[1] + "\n" + strs[2] + "\n" + strs[3] + "\n" + strs[4] + "\n" + strs[5] + "\n"));
+				String content = "";
+				for(int j = 1; j < strs.length; j++) {
+					content += strs[j] + "\n";
+				}
+				b.add(new block(strs[0], content));
 			}
 		}
+		System.out.println("[getChain] get block chain - " + str[6]);
 		return b;
 	}
 	
@@ -43,17 +50,15 @@ public class accessedByJSP extends blockDAO {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
 			BufferedReader bufReader = new BufferedReader(fileReader);
-			int index = 0;
 			String line = "";
 			String str = "";
 			while((line = bufReader.readLine()) != null) {
-				str += line + "\n";
-				index++;
-				if(index == 6) {
+				if(line.equals("(block)")) {
 					Line.add(str);
 					str = "";
-					index = 0;
 				}
+				else
+					str += line + "\n";
 			}
 			bufReader.close();
 		}catch(FileNotFoundException e) {

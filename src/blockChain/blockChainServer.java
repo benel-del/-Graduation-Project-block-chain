@@ -17,7 +17,6 @@ public class blockChainServer {
 					for(int i = 0; i < files.size(); i++) {
 						dao.updateChain(files.get(i));
 					}
-					
 				} catch (Exception e) {
 					e.printStackTrace();
 					exec.shutdown();

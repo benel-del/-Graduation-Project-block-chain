@@ -44,26 +44,25 @@ public class accessedByJava extends blockDAO {
 		if(index == -1)
 			index = newChain(file);
 		
-		int i = files.get(index).lastIndex;
-		ArrayList<String> Line = readLogFile(file);
-		for(int j; i < Line.size(); ) {
+		if(index != -1) {
 			String str = "";
-			for(j = 0; j < 5 && i < Line.size(); j++)
-				str += Line.get(i++) + "\n";
-			if(j >= 5) {
+			ArrayList<String> Line = readLogFile(file);
+			for(int i = files.get(index).lastIndex; i < Line.size(); i++)
+				str += Line.get(i) + "\n";
+			if(!str.equals("")) {
 				chain.get(index).add(new block(sign(index), str));	// create block
-				files.get(index).setLastIndex(i);
-				System.out.println("[updateChain] create new block - " + files.get(index).name);
+				files.get(index).setLastIndex(Line.size());
+				System.out.println("[updateChain] " + files.get(index).name + " - create new block[" + (chain.get(index).size()-1) + "]");
+				writeChain(file);
 			}
 		}
-		writeChain(file);
 	}
 
 	private int newChain(String file) {
 		int index = files.size();
 		files.add(new fileInfo(file, 0));
 		chain.add(new ArrayList<block>());
-		chain.get(index).add(new block("START", file+"\n\n\n\n\n"));
+		chain.get(index).add(new block("START", file+"\n"));
 		System.out.println("[newChain] create new chain - " + files.get(index).name);
 		return index;
 	}
@@ -76,22 +75,22 @@ public class accessedByJava extends blockDAO {
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/" + str[6];
 		new File(path).delete();	new File(path).createNewFile();
 		FileWriter fw = new FileWriter(path);
-		String tmp = b.get(0).sign + "\n" + b.get(0).content;
+		String tmp = b.get(0).sign + "\n" + b.get(0).content + "(block)\n";
 		for(int i = 1; i < b.size(); i++){
 			int dec = Integer.parseInt(rsa.decrypt(b.get(i).sign, rsa.getPublicKey()));
 			int hash = (b.get(i-1).sign + "\n" + b.get(i-1).content).hashCode();
 			if(dec != hash){	// verification
-				System.out.println("[writeChain] block chain verification - error");
+				System.out.println("[writeChain] " + files.get(index).name + " - block chain verification error");
 				fw.close();
 				return -1;
 			}
 			else {
-				tmp += b.get(i).sign + "\n" + b.get(i).content;
+				tmp += b.get(i).sign + "\n" + b.get(i).content + "(block)\n";	// '(block)\n' : block end
 			}
 		}
 		fw.write(tmp);
 		fw.close();
-		System.out.println("[writeChain] block chain store in - " + path);
+		//System.out.println("[writeChain] " + files.get(index).name + " - block chain store in '.txt' file");
 		return 1;
 	}
 	
