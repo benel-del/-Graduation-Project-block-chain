@@ -21,8 +21,8 @@ public class accessedByJava extends blockDAO {
 		}
 	}
 	
-	static ArrayList<fileInfo> files = new ArrayList<>();
-	static ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
+	static public ArrayList<fileInfo> files = new ArrayList<>();
+	static public ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
 	
 	public accessedByJava() throws Exception {
 		rsa.setKey();
@@ -53,7 +53,6 @@ public class accessedByJava extends blockDAO {
 				chain.get(index).add(new block(sign(index), str));	// create block
 				files.get(index).setLastIndex(Line.size());
 				System.out.println("[updateChain] " + files.get(index).name + " - create new block[" + (chain.get(index).size()-1) + "]");
-				writeChain(file);
 			}
 		}
 	}
@@ -67,37 +66,30 @@ public class accessedByJava extends blockDAO {
 		return index;
 	}
 	
-	private int writeChain(String file) throws NumberFormatException, Exception {
-		int index = getIndex(file);
+	public ArrayList<String> getChain(String file) throws NumberFormatException, Exception{
+		int index = getIndex("/usr/local/lib/apache-tomcat-9.0.43/logs/" + file);
 		ArrayList<block> b = chain.get(index);
+		ArrayList<String> str = new ArrayList<>();
 		
-		String[] str = file.split("/");
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/" + str[6];
-		new File(path).delete();	new File(path).createNewFile();
-		FileWriter fw = new FileWriter(path);
-		String tmp = b.get(0).sign + "\n" + b.get(0).content + "(block)\n";
 		for(int i = 1; i < b.size(); i++){
 			int dec = Integer.parseInt(rsa.decrypt(b.get(i).sign, rsa.getPublicKey()));
-			int hash = (b.get(i-1).sign + "\n" + b.get(i-1).content).hashCode();
+			int hash = b.get(i-1).hashCode();
 			if(dec != hash){	// verification
-				System.out.println("[writeChain] " + files.get(index).name + " - block chain verification error");
-				fw.close();
-				return -1;
+				str.add("[hashcode error] " + file);
+				break;
 			}
 			else {
-				tmp += b.get(i).sign + "\n" + b.get(i).content + "(block)\n";	// '(block)\n' : block end
+				str.add(b.get(i).content);
 			}
 		}
-		fw.write(tmp);
-		fw.close();
-		//System.out.println("[writeChain] " + files.get(index).name + " - block chain store in '.txt' file");
-		return 1;
+		System.out.println("[getChain] get block chain - " + file);
+		return str;
 	}
 	
 	private String sign(int index) throws Exception {
 		int size = chain.get(index).size();
 		block b = chain.get(index).get(size-1);
-		return rsa.encrypt((b.sign + "\n" + b.content).hashCode() + "", rsa.getPrivateKey());
+		return rsa.encrypt(b.hashCode() + "", rsa.getPrivateKey());
 	}
 	
 	private int getIndex(String name) {

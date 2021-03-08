@@ -1,9 +1,12 @@
 package blockChain;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.util.ArrayList;
 
 import javax.servlet.ServletException;
@@ -15,8 +18,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-//import blockChain.block;
-//import blockChain.accessedByJSP;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
 
 /**
  * Servlet implementation class Log
@@ -26,7 +29,43 @@ public class Log extends HttpServlet {
 	static String[] option;
 	static JSONArray json = new JSONArray();
 	private static final long serialVersionUID = 1L;
-       
+	ArrayList<String> content;
+
+	private class client extends WebSocketClient {
+		private String file = "";
+		private client(URI serverUri, String file) {
+			super(serverUri);
+			this.file = file;
+		}
+		@Override
+		public void onOpen(ServerHandshake handshakedata) {
+			send(file);
+		    System.out.println("opened connection");
+		    // if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
+		}
+
+		@Override
+		public void onMessage(String message) {
+			String str[] = message.split("\n");
+			for(int i = 0; i < str.length; i++)
+				content.add(str[i]);
+		}
+
+		@Override
+		public void onClose(int code, String reason, boolean remote) {
+			// The codecodes are documented in class org.java_websocket.framing.CloseFrame
+		    System.out.println(
+		        "Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: "
+		            + reason);
+		}
+
+		@Override
+		public void onError(Exception ex) {
+			ex.printStackTrace();
+		    // if the error is fatal then onClose will be called additionally
+		}
+	}
+   
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -53,41 +92,35 @@ public class Log extends HttpServlet {
 		response.setContentType("text/html; charset=utf-8");
 		String fileName = request.getParameter("file");
 		option = request.getParameterValues("option");
-		accessedByJSP block;
+
 		try {
-			block = new accessedByJSP();
-			ArrayList<block> content = block.getChain(fileName);
-			ArrayList<String> originalFile = block.readLogFile(fileName);
+			WebSocketClient socket = new client(new URI("ws://localhost:8080/block/websockets"), fileName);
+			socket.connect();
+			ArrayList<String> originalFile = readLogFile(fileName);
 
 			String[] line = new String[2];
 			String[] splitServ = {""};
 			String[] splitBlock;
-			String[] str;
 			json = new JSONArray();
 			int k = 0;
 			for(int i = 0; i < content.size(); i++){
-				str = content.get(i).content.split("\n");
+				splitBlock = splitLog(content.get(i));
+				// splitServ �꽕�젙 (blockchain �겕湲곌� �뜑 �겢 �븣 ��鍮�)
+				if(k > originalFile.size()) {
+					addJson(splitBlock, "4");
+				}
+				else {
+					splitServ = splitLog(originalFile.get(k++));
+				}
 
-				for(int j = 0; j < str.length; j++){
-					splitBlock = splitLog(str[j]);
+				if (compareLog(splitServ, splitBlock, option)) {
+					addJson(splitServ, "0");
+				}
 
-					// splitServ 설정 (blockchain 크기가 더 클 때 대비)
-					if(k > originalFile.size()) {
-						addJson(splitBlock, "4");
-					}
-					else {
-						splitServ = splitLog(originalFile.get(k++));
-					}
-
-					if (compareLog(splitServ, splitBlock, option)) {
-						addJson(splitServ, "0");
-					}
-
-					// blockchain과 server log가 다를 때
-					else {
-						addJson(splitServ, "1");
-						addJson(splitBlock, "2");
-					}
+				// blockchain怨� server log媛� �떎瑜� �븣
+				else {
+					addJson(splitServ, "1");
+					addJson(splitBlock, "2");
 				}
 			}
 			while ((line[0]=originalFile.get(k++))!=null) {
@@ -131,4 +164,25 @@ public class Log extends HttpServlet {
     	json.add(temp2);
     }
 
+    private ArrayList<String> readLogFile(String filename) {
+		ArrayList<String> Line = new ArrayList<>();
+		String path = filename;
+		//System.out.println("[readLogFile] readFile path: "  + path);
+		try {
+			File file = new File(path);
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufReader = new BufferedReader(fileReader);
+			String line = "";
+			while((line = bufReader.readLine()) != null) {
+				if(line.contains("/block/index.jsp") || line.contains("/block/fileUpload.jsp") || line.contains("/block/fileDownload.jsp"))
+					Line.add(line);
+			}
+			bufReader.close();
+		}catch(FileNotFoundException e) {
+			Line.add("Error:: file not found - " + path);
+		}catch(IOException e) {
+			System.out.println(e);
+		}
+		return Line;
+	}
 }
