@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class socketClient {
-	ArrayList<String> content;
+	private ArrayList<String> content;
 	public socketClient(String file){
 		try{
 			Socket soc = new Socket("localhost", 6000);
-			// System.out.println(getTime() + " Accept to Server Success...");
+			System.out.println(getTime() + " Accept to Server Success...");
 			
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
@@ -24,10 +24,10 @@ public class socketClient {
 			String line = "";
 			content = new ArrayList<>();
 			while((line = br.readLine()) != null) {
-				pw.println(line);
-				content.add(line);
+				if(!line.equals("\n"))
+					content.add(line);
+				System.out.println(line);
 			}
-			
 			soc.close();
 		} catch(Exception e) {
 			e.printStackTrace();

@@ -40,7 +40,7 @@
 		<span>옵션</span>
 		<%
 		for (int i=0; i<optionList.length; i++)
-			out.println("<input type='checkbox' name='option' value='"+i+"'><label for='"+i+"'>"+optionList[i]+"</label>");
+			out.println("<input type='checkbox' name='option' id='"+i+"' value='"+i+"'><label for='"+i+"'>"+optionList[i]+"</label>");
 		%>
 	</div>
 	<input type="button" value="submit">

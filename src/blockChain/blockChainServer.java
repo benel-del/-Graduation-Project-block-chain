@@ -25,23 +25,27 @@ class Sockets extends Thread {
 	
 	public void run() {
 		try {
-			System.out.println(getTime() + " Client has accepted...");
+			//System.out.println(getTime() + " Client has accepted...");
 			
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			PrintWriter pw = new PrintWriter(client.getOutputStream());
 			
             String file = br.readLine();
             ArrayList<String> list = blockChainServer.getChain(file);
-    		String str = "";
+            
     		for(int i = 0; i < list.size(); i++)
-    			str += list.get(i);
-    		pw.println(str);
+    			pw.println(list.get(i));
+    		pw.flush();
     		System.out.println(getTime() + " to Client > " + file);
-    		
-    		file = br.readLine();
-    		System.out.println(getTime() + " to Client > " + file);
+
 		} catch (Exception e) {
             e.printStackTrace();
+        } finally {
+        	try {
+				client.close();
+			} catch (IOException e) {
+				System.out.println(getTime() + "Client close error");
+			}
         }
 	}
 	
@@ -82,7 +86,7 @@ public class blockChainServer {
 		}
 	}
 	
-	private static void blockChain() throws Exception {
+	static private void blockChain() throws Exception {
 		int sleepSec = 60;
 		
 		ArrayList<String> files = blockDAO.readAllFile();
@@ -106,7 +110,7 @@ public class blockChainServer {
 		}, 0, sleepSec, TimeUnit.SECONDS);
 	}
 	
-	public static void updateChain(String file) throws Exception {
+	static public void updateChain(String file) throws Exception {
 		int index = getIndex(file);
 		if(index == -1)
 			index = newChain(file);
@@ -124,7 +128,7 @@ public class blockChainServer {
 		}
 	}
 
-	private static int newChain(String file) {
+	static private int newChain(String file) {
 		int index = files.size();
 		files.add(new fileInfo(file, 0));
 		chain.add(new ArrayList<block>());
@@ -151,7 +155,7 @@ public class blockChainServer {
 					str.add(b.get(i).content);
 				}
 			}
-			System.out.println("[getChain] get block chain - " + file);
+			//System.out.println("[getChain] get block chain - " + file);
 			return str;
 		}
 		
@@ -159,7 +163,7 @@ public class blockChainServer {
 		return null;
 	}
 	
-	private static String sign(int index) throws Exception {
+	static private String sign(int index) throws Exception {
 		int size = chain.get(index).size();
 		block b = chain.get(index).get(size-1);
 		return rsa.encrypt(b.hashCode() + "", rsa.getPrivateKey());
@@ -174,7 +178,7 @@ public class blockChainServer {
 		return -1;
 	}
 
-	private static ArrayList<String> readUpdateFile(){
+	static private ArrayList<String> readUpdateFile(){
 		ArrayList<String> Line = new ArrayList<>();
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/update.txt";
 		try {
@@ -193,5 +197,4 @@ public class blockChainServer {
 		}
 		return Line;
 	}
-
 }

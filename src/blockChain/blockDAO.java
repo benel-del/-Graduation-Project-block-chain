@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class blockDAO {
 	
-	public static ArrayList<String> readLogFile(String filename) {
+	static public ArrayList<String> readLogFile(String filename) {
 		ArrayList<String> Line = new ArrayList<>();
 		String path = filename;
 		//System.out.println("[readLogFile] readFile path: "  + path);
@@ -31,7 +31,7 @@ public class blockDAO {
 		return Line;
 	}
 	
-	public static ArrayList<String> readAllFile(){
+	static public ArrayList<String> readAllFile(){
 		ArrayList<String> Line = new ArrayList<>();
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/files.txt";
 		try {
