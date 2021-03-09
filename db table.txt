@@ -1,0 +1,11 @@
+# file upload/download table
+
+drop table file;
+create table file(
+	no int auto_increment PRIMARY KEY,
+	name varchar(200),
+	password varchar(200),
+	originalFileSize varchar(100),
+	resultFileSize varchar(100),
+	fileOption varchar(20)
+);

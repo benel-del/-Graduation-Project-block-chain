@@ -44,7 +44,7 @@
 			else{
 				//db upload
 				fileDAO f = new fileDAO();
-				f.insert(fileName, fileName, pw, f.fileSize(fileSize), option);
+				f.insert(fileName, pw, f.fileSize(fileSize), option);
 				
 				//action 
 				newName = fileName.substring(0, fileName.length()-4);

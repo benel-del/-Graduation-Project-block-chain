@@ -27,15 +27,14 @@ public class fileDAO {
 		}
 	}
 	
-	public int insert(String original, String name, String pw, String originalSize, String option) {
-		String sql = "INSERT INTO file(originalName, systemName, password, originalFileSize, resultFileSize, fileOption) VALUES(?, ?, ?, ?, 0, ?);";
+	public int insert(String name, String pw, String originalSize, String option) {
+		String sql = "INSERT INTO file(name, password, originalFileSize, resultFileSize, fileOption) VALUES(?, ?, ?, 0, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, original);
-			pstmt.setString(2, name);
-			pstmt.setString(3, pw);
-			pstmt.setString(4, originalSize);
-			pstmt.setString(5, option);
+			pstmt.setString(1, name);
+			pstmt.setString(2, pw);
+			pstmt.setString(3, originalSize);
+			pstmt.setString(4, option);
 			pstmt.executeUpdate();
 			return 1;
 		} catch (Exception ex) {
@@ -45,19 +44,18 @@ public class fileDAO {
 	}
 	
 	public file getFileInfo(String name) {
-		String sql = "SELECT * FROM file WHERE systemName = ? ORDER BY no DESC;";
+		String sql = "SELECT * FROM file WHERE name = ? ORDER BY no DESC;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, name);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				file f = new file();
-				f.setOriginalName(rs.getString(2));
-				f.setSystemName(rs.getString(3));
-				f.setPassword(rs.getString(4));
-				f.setOriginalFileSize(rs.getString(5));
-				f.setResultFileSize(rs.getString(6));
-				f.setFileOption(rs.getString(7));
+				f.setName(rs.getString(2));
+				f.setPassword(rs.getString(3));
+				f.setOriginalFileSize(rs.getString(4));
+				f.setResultFileSize(rs.getString(5));
+				f.setFileOption(rs.getString(6));
 				return f;
 			}
 		} catch (Exception ex) {
@@ -67,7 +65,7 @@ public class fileDAO {
 	}
 	
 	public int update(String name, String resultSize, String option) {
-		String sql = "UPDATE file SET resultFileSize = ? WHERE systemName = ? AND resultFileSize = 0 AND fileOption = ?;";
+		String sql = "UPDATE file SET resultFileSize = ? WHERE name = ? AND resultFileSize = 0 AND fileOption = ?;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, resultSize);

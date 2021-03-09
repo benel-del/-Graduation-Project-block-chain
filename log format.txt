@@ -1,0 +1,5 @@
+%h %l %u %t &quot;%r&quot; %s %b
+
+>>
+
+%a %A %B %h %H %l %m %p %q %t %s %S %u %U

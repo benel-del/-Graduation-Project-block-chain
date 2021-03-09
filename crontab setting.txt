@@ -1,0 +1,2 @@
+$crontab -e
+* * * * * /usr/local/lib/apache-tomcat-9.0.43/webapps/update.sh
