@@ -2,7 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ page import="java.io.File" %>
 <%@ page import="blockChain.block" %>
-<%@ page import="blockChain.accessedByJSP" %>
+<%@ page import="blockChain.blockDAO" %>
 <%@ page import="java.util.ArrayList" %>
 
 <!DOCTYPE html>
@@ -25,8 +25,7 @@
 <body>
 	<%
 	String optionList[] = {"RemoteIP", "LocalIP", "BytesSent", "RemoteHostName", "RequestProtocol", "RemoteLogicalUsername", "RequestMethod", "LocalPort", "QueryString", "FirstLineRequest", "StatusofResponse", "UserSessionID", "Date", "UserAuthenticated", "RequestedURL", "LocalServerName", "TimeTakenToProcesssRequest"};
-	accessedByJSP block = new accessedByJSP();
-	ArrayList<String> files = block.readAllFile();		// all files
+	ArrayList<String> files = blockDAO.readAllFile();		// all files
 	%>
 	<div class="file"><span>HTTP 클라이언트 접속 정보</span></div>
 	<div class="date">

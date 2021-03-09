@@ -1,7 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="blockChain.block" %>
-<%@ page import="blockChain.accessedByJSP" %>
+<%@ page import="blockChain.blockDAO" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="java.net.URI" %>
+<%@ page import="blockChain.socketClient" %>
 
 <!DOCTYPE html>
 <html>
@@ -9,8 +10,7 @@
 <meta charset="UTF-8">
 <title>Insert title here</title>
 <%
-accessedByJSP block = new accessedByJSP();
-ArrayList<String> files = block.readAllFile();		// all files
+ArrayList<String> files = blockDAO.readAllFile();		// all files
 String file = null;
 if(request.getParameter("file") != null){
 	file = request.getParameter("file");
@@ -20,7 +20,6 @@ if(request.getParameter("file") != null){
 <body>
 	<label for="name">log file: </label>
 	<select id="log">
-		<option value="no" selected>select file</option>
 	<%
 		for(int i = 0; i < files.size(); i++){
 			%>
@@ -36,23 +35,22 @@ if(request.getParameter("file") != null){
 %>
 	<table>
 	<%
-		ArrayList<block> content = block.getChain(file);
-		ArrayList<String> originalFile = block.readLogFile(file);
-		out.println("<tr><th>content size: " + content.size());
-		out.println("original size: " + originalFile.size() + "</th></tr>");
-		int k = 0;
-		for(int i = 0; i < content.size(); i++){
-			String[] str = content.get(i).content.split("\n");
-			
-			for(int j = 0; j < str.length; j++){
+		try{
+			socketClient socket = new socketClient(file);
+			ArrayList<String> content = socket.getContent();
+			ArrayList<String> originalFile = blockDAO.readLogFile(file);
+			out.println("<tr><th>content size: " + content.size());
+			out.println("original size: " + originalFile.size() + "</th></tr>");
+			int k = 0;
+			for(int i = 0; i < content.size(); i++){
 				%>
 				<tr><td>
 				<%
-				if(str[j].equals(originalFile.get(k))){	// compare file & block chain
-					out.println(str[j].replaceAll("\\\\", "/").replaceAll("\"", "\'"));
+				if(content.get(i).equals(originalFile.get(k))){	// compare file & block chain
+					out.println(content.get(i).replaceAll("\\\\", "/").replaceAll("\"", "\'"));
 				}
 				else{
-					out.println("[block chain]" + str[j].replaceAll("\\\\", "/").replaceAll("\"", "\'"));
+					out.println("[block chain]" + content.get(i).replaceAll("\\\\", "/").replaceAll("\"", "\'"));
 					out.println("[original file ]" + originalFile.get(k).replaceAll("\\\\", "/").replaceAll("\"", "\'"));
 				}
 				k++;
@@ -60,22 +58,25 @@ if(request.getParameter("file") != null){
 				</td></tr>
 			<%
 			}
+			%>
+		</table>
+	<%
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		%>
-	</table>
-<%
+		
 	}
 %>
 </div>
 
 <script type="text/javascript">
+	history.replaceState({}, null, "test.jsp");
+
 	const log = document.getElementById("log");
 	function url(){
 		var data = log.options[log.selectedIndex].value;
-		if(data != "no")
-			location.href = "test.jsp?file="+data;
-		else
-			location.href = "test.jsp?file=no";
+		location.href = "test.jsp?file="+data;
 	}
 </script>
 </body>

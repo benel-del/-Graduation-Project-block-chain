@@ -1,9 +1,5 @@
 package blockChain;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
@@ -18,9 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-
 /**
  * Servlet implementation class Log
  */
@@ -29,43 +22,7 @@ public class Log extends HttpServlet {
 	static String[] option;
 	static JSONArray json = new JSONArray();
 	private static final long serialVersionUID = 1L;
-	ArrayList<String> content;
 
-	private class client extends WebSocketClient {
-		private String file = "";
-		private client(URI serverUri, String file) {
-			super(serverUri);
-			this.file = file;
-		}
-		@Override
-		public void onOpen(ServerHandshake handshakedata) {
-			send(file);
-		    System.out.println("opened connection");
-		    // if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
-		}
-
-		@Override
-		public void onMessage(String message) {
-			String str[] = message.split("\n");
-			for(int i = 0; i < str.length; i++)
-				content.add(str[i]);
-		}
-
-		@Override
-		public void onClose(int code, String reason, boolean remote) {
-			// The codecodes are documented in class org.java_websocket.framing.CloseFrame
-		    System.out.println(
-		        "Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: "
-		            + reason);
-		}
-
-		@Override
-		public void onError(Exception ex) {
-			ex.printStackTrace();
-		    // if the error is fatal then onClose will be called additionally
-		}
-	}
-   
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -94,10 +51,10 @@ public class Log extends HttpServlet {
 		option = request.getParameterValues("option");
 
 		try {
-			WebSocketClient socket = new client(new URI("ws://localhost:8080/block/websockets"), fileName);
-			socket.connect();
-			ArrayList<String> originalFile = readLogFile(fileName);
-
+			socketClient socket = new socketClient(fileName);
+			ArrayList<String> originalFile = blockDAO.readLogFile(fileName);
+			ArrayList<String> content = socket.getContent();
+			
 			String[] line = new String[2];
 			String[] splitServ = {""};
 			String[] splitBlock;
@@ -164,25 +121,4 @@ public class Log extends HttpServlet {
     	json.add(temp2);
     }
 
-    private ArrayList<String> readLogFile(String filename) {
-		ArrayList<String> Line = new ArrayList<>();
-		String path = filename;
-		//System.out.println("[readLogFile] readFile path: "  + path);
-		try {
-			File file = new File(path);
-			FileReader fileReader = new FileReader(file);
-			BufferedReader bufReader = new BufferedReader(fileReader);
-			String line = "";
-			while((line = bufReader.readLine()) != null) {
-				if(line.contains("/block/index.jsp") || line.contains("/block/fileUpload.jsp") || line.contains("/block/fileDownload.jsp"))
-					Line.add(line);
-			}
-			bufReader.close();
-		}catch(FileNotFoundException e) {
-			Line.add("Error:: file not found - " + path);
-		}catch(IOException e) {
-			System.out.println(e);
-		}
-		return Line;
-	}
 }
