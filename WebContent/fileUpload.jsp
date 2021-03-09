@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=EUC-KR" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.net.URLEncoder"%>
 <%@page import="java.io.*" %>
 <%@page import="java.util.ArrayList" %>
@@ -10,8 +10,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="EUC-KR">
-<title>Insert title here</title>
+<meta charset="UTF-8">
 </head>
 <%
 	PrintWriter script = response.getWriter();
@@ -42,9 +41,7 @@
 				script.println("</script>");
 			}
 			else{
-				//db upload
 				fileDAO f = new fileDAO();
-				f.insert(fileName, pw, f.fileSize(fileSize), option);
 				
 				//action 
 				newName = fileName.substring(0, fileName.length()-4);
@@ -74,7 +71,8 @@
 				fw.write(tmp);
 				fw.close();
 				
-				f.update(fileName, f.fileSize(resultFile.length()), option);
+				//db upload
+				f.insert(fileName, newName, pw, f.fileSize(fileSize), f.fileSize(resultFile.length()), option);
 				
 				script.println("<script>");
 				script.println("location.href = 'index.jsp?file=" + URLEncoder.encode(fileName, "UTF-8") + "'");

@@ -4,12 +4,12 @@
 <%@ page import="blockChain.block" %>
 <%@ page import="blockChain.blockDAO" %>
 <%@ page import="java.util.ArrayList" %>
-
+<%@ page import="java.io.PrintWriter" %>
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>관리자 페이지</title>
+	<title>log view page</title>
 	<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 	<style>
 	table, td {
@@ -24,6 +24,17 @@
 </head>
 <body>
 	<%
+	String userID = null;
+	if(session.getAttribute("userID") != null){
+		userID = (String) session.getAttribute("userID");
+	}
+	if(userID == null || userID != null && !userID.equals("v1e3er")){
+		PrintWriter script = response.getWriter();
+		script.println("<script>");
+		script.println("history.back()");
+		script.println("</script>");
+	}
+	
 	String optionList[] = {"RemoteIP", "LocalIP", "BytesSent", "RemoteHostName", "RequestProtocol", "RemoteLogicalUsername", "RequestMethod", "LocalPort", "QueryString", "FirstLineRequest", "StatusofResponse", "UserSessionID", "Date", "UserAuthenticated", "RequestedURL", "LocalServerName", "TimeTakenToProcesssRequest"};
 	ArrayList<String> files = blockDAO.readAllFile();		// all files
 	%>

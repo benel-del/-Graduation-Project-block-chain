@@ -1,17 +1,24 @@
 package file;
 
 public class file {
-	String name;
+	String originalName;
+	String resultName;
 	String password;
 	String originalFileSize;
 	String resultFileSize;
 	String fileOption;
-	
-	public String getName() {
-		return name;
+
+	public String getOriginalName() {
+		return originalName;
 	}
-	public void setName(String name) {
-		this.name = name;
+	public void setOriginalName(String originalName) {
+		this.originalName = originalName;
+	}
+	public String getResultName() {
+		return resultName;
+	}
+	public void setResultName(String resultName) {
+		this.resultName = resultName;
 	}
 	public String getPassword() {
 		return password;

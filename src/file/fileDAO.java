@@ -27,14 +27,16 @@ public class fileDAO {
 		}
 	}
 	
-	public int insert(String name, String pw, String originalSize, String option) {
-		String sql = "INSERT INTO file(name, password, originalFileSize, resultFileSize, fileOption) VALUES(?, ?, ?, 0, ?);";
+	public int insert(String name, String resultName, String pw, String originalSize, String resultSize, String option) {
+		String sql = "INSERT INTO file(originalName, resultName, password, originalFileSize, resultFileSize, fileOption) VALUES(?, ?, ?, ?, ?, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, name);
-			pstmt.setString(2, pw);
-			pstmt.setString(3, originalSize);
-			pstmt.setString(4, option);
+			pstmt.setString(2, resultName);
+			pstmt.setString(3, pw);
+			pstmt.setString(4, originalSize);
+			pstmt.setString(5, resultSize);
+			pstmt.setString(6, option);
 			pstmt.executeUpdate();
 			return 1;
 		} catch (Exception ex) {
@@ -44,39 +46,25 @@ public class fileDAO {
 	}
 	
 	public file getFileInfo(String name) {
-		String sql = "SELECT * FROM file WHERE name = ? ORDER BY no DESC;";
+		String sql = "SELECT * FROM file WHERE originalName = ? ORDER BY no DESC;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, name);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				file f = new file();
-				f.setName(rs.getString(2));
-				f.setPassword(rs.getString(3));
-				f.setOriginalFileSize(rs.getString(4));
-				f.setResultFileSize(rs.getString(5));
-				f.setFileOption(rs.getString(6));
+				f.setOriginalName(rs.getString(2));
+				f.setResultName(rs.getString(3));
+				f.setPassword(rs.getString(4));
+				f.setOriginalFileSize(rs.getString(5));
+				f.setResultFileSize(rs.getString(6));
+				f.setFileOption(rs.getString(7));
 				return f;
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		return null;	// db error
-	}
-	
-	public int update(String name, String resultSize, String option) {
-		String sql = "UPDATE file SET resultFileSize = ? WHERE name = ? AND resultFileSize = 0 AND fileOption = ?;";
-		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, resultSize);
-			pstmt.setString(2, name);
-			pstmt.setString(3, option);
-			pstmt.executeUpdate();
-			return 1;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return -1;	// db error
 	}
 	
 	public ArrayList<String> read(String name) {

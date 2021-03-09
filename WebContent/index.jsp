@@ -11,7 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="stylesheet" type="text/css" href="frame.css">
-<title>Insert title here</title>
+<title>log data collection page</title>
 </head>
 <%
 	fileDAO f = new fileDAO();
@@ -128,7 +128,7 @@
 	else{
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile";
 		String[] fileNameOfPath = new File(path).list();
-		for(int i = 0; i < fileNameOfPath.length; i++){
+		for(int i = 0; fileNameOfPath != null && i < fileNameOfPath.length; i++){
 			System.out.println("delete:" + fileNameOfPath[i]);
 			new File(path + "/" + fileNameOfPath[i]).delete();
 		}
@@ -154,7 +154,7 @@
 		
 		inputP.addEventListener("change", (evt) => {
 			const pw = evt.target.value;
-			if(pw.length < 6)
+			if(pw.length < 5)
 				isPassword = false;
 			else
 				isPassword = true;

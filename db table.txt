@@ -3,9 +3,10 @@
 drop table file;
 create table file(
 	no int auto_increment PRIMARY KEY,
-	name varchar(200),
+	originalName varchar(200),
+	resultName varchar(200) default 0,
 	password varchar(200),
 	originalFileSize varchar(100),
-	resultFileSize varchar(100),
+	resultFileSize varchar(100) default 0,
 	fileOption varchar(20)
 );
