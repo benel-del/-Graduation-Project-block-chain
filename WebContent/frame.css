@@ -51,10 +51,45 @@ button {
 	padding: 8px;
 	width: 130px;
 }
+#action{
+	width: 80px;
+	height: 60px;
+}
 
 p {
 	color: red;
 	font-size: 1.0em;
 	font-weight: bold;
 	font-family: monospace; 
+}
+
+.login_page{
+	width: 35%;
+	margin: 50px auto;
+	padding: 20px;
+}
+.login_header{
+	margin: 30px;
+	padding: 10px;
+	text-align: center;
+}
+.login_form{
+	margin: 20px;
+	padding: 10px;
+	text-align: center;
+}
+.login_form table{
+	margin: auto;
+}
+.login_form input{
+	width: 180px;
+	height: 30px;
+}
+.login_form .login_submit-btn{
+	height: 80px;
+	width: 80px;
+	padding: auto;
+	font-weight: 300;
+	font-size: 18px;
+	cursor: pointer;
 }

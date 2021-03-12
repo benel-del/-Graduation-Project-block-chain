@@ -4,6 +4,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="frame.css">
 <title>admin login page</title>
 </head>
 <body>
@@ -22,16 +23,25 @@
 	<div class="login_page">
 	  	<form method="post" action="loginAction.jsp">
 	  		<div class="login_header">
-	       		<a href="admin.jsp">LOGIN</a>
+	  			<h1>관리자 로그인</h1>
+	  			<span>관리자 이외에는 접근을 금지합니다.</span>
 	   		</div>
 	
-	   		<div class="login_form">
-	       		<input type="text" placeholder="ID" name="userID" maxlength="15">
-	       		<br>
-	       		<input type="password" placeholder="PW" name="userPassword" maxlength="15" />           
+			<div class="login_form">
+	   		<table>
+		   		<tbody>
+		       		<tr>
+		       			<td>아이디</td>
+		       			<td><input type="text" placeholder="ID" name="userID" maxlength="15" tabindex="1"></td>
+		       			<td rowspan=2><input type="submit" class="login_submit-btn" value="login"></td>
+	      			</tr>
+	      			<tr>
+	      				<td>패스워드</td>
+	      				<td><input type="password" placeholder="Password" name="userPassword" maxlength="15" tabindex="2"></td>
+	  				</tr>
+   				</tbody>           
+	   		</table>
 	   		</div>
-	   
-	   		<input type="submit" class="login_submit-btn" value="login" >
 		</form>
 	</div>
 </body>
