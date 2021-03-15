@@ -146,7 +146,7 @@ public class blockChainServer {
 			ArrayList<String> str = new ArrayList<>();
 
 			for(int i = 1; i < b.size(); i++){
-				int dec = Integer.parseInt(rsa.decrypt(b.get(i).sign, rsa.getPublicKey()));
+				int dec = Integer.parseInt(rsa.decrypt(b.get(i).getSign(), rsa.getPublicKey()));
 				int hash = b.get(i-1).hashCode();
 				if(dec != hash){	// verification
 					str.add("[hashcode error] " + file);
@@ -154,7 +154,7 @@ public class blockChainServer {
 				}
 				else {
 					//System.out.println("[chain content] " + b.get(i).content);
-					str.add(b.get(i).content);
+					str.add(b.get(i).getContent());
 				}
 			}
 			//System.out.println("[getChain] get block chain - " + file);
