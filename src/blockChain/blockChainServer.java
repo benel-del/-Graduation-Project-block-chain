@@ -33,8 +33,10 @@ class Sockets extends Thread {
             String file = br.readLine();
             ArrayList<String> list = blockChainServer.getChain(file);
             
-    		for(int i = 0; i < list.size(); i++)
-    			pw.println(list.get(i));
+    		for(int i = 0; i < list.size(); i++) {
+    			if(!list.get(i).contains("logView.jsp"))
+    				pw.println(list.get(i));
+    		}
     		pw.flush();
     		System.out.println(getTime() + " to Client > " + file);
 
@@ -117,7 +119,7 @@ public class blockChainServer {
 		
 		if(index != -1) {
 			String str = "";
-			ArrayList<String> Line = blockDAO.readLogFile(file);
+			ArrayList<String> Line = blockDAO.readLogFile_server(file);
 			for(int i = files.get(index).lastIndex; i < Line.size(); i++)
 				str += Line.get(i) + "\n";
 			if(!str.equals("")) {
