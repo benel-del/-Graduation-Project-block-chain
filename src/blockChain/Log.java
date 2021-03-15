@@ -52,7 +52,7 @@ public class Log extends HttpServlet {
 
 		try {
 			socketClient socket = new socketClient(fileName);
-			ArrayList<String> originalFile = blockDAO.readLogFile(fileName);
+			ArrayList<String> originalFile = blockDAO.readLogFile_client(fileName);
 			ArrayList<String> content = socket.getContent();
 			
 			String[] line = new String[2];
