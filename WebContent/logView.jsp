@@ -7,6 +7,7 @@
 <%@ page import="java.io.PrintWriter" %>
 <!DOCTYPE html>
 <html>
+<link rel="stylesheet" type="text/css" href="frame.css">
 <head>
 	<meta charset="UTF-8">
 	<title>log view page</title>
