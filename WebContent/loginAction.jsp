@@ -22,10 +22,10 @@
 		ArrayList<String> files = socket.getAllChainName();
 		ArrayList<ArrayList<String>> chain = socket.getAllChainContent();
 		
-		session.setAttribute("userID", adminID);
-		session.setAttribute("chainName", files);
-		session.setAttribute("chainContent", chain);
-		session.setMaxInactiveInterval(-1);
+		session.setAttribute("userID", login.getUserID());
+		//session.setAttribute("chainName", files);
+		//session.setAttribute("chainContent", chain);
+		//session.setMaxInactiveInterval(-1);
 		
 		PrintWriter script = response.getWriter();
 		script.println("<script>");

@@ -122,9 +122,18 @@ public class blockChainServer {
 	static private void blockChain() throws Exception {
 		int sleepSec = 60;
 		
-		ArrayList<String> files = blockDAO.readAllFile();
-		for(int i = 0; i < files.size(); i++) {
-			updateChain(files.get(i));
+		ArrayList<String> filess = blockDAO.readAllFile();
+		for(int i = 0; i < filess.size(); i++) {
+			updateChain(filess.get(i));
+		}
+		
+		for(int i = 0; i < files.size(); ) {
+			if(chain.get(i).size() == 0) {
+				files.remove(i);
+				chain.get(i).remove(i);
+			}
+			else
+				i++;
 		}
 
 		final ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);

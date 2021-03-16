@@ -25,12 +25,14 @@
 	}
 
 	String optionList[] = {"Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"};
-	ArrayList<String> files = blockDAO.readAllFile();		// all files
+	@SuppressWarnings("unchecked")
+	ArrayList<String> files = (ArrayList<String>) session.getAttribute("chainName");		// all files
 	%>
 	
 	<div class="container">
 	<div class="row mt-5 file">
 		<div class="lead">HTTP 클라이언트 접속 정보</div>
+		<div class="logout"><a href="logoutAction.jsp">logout</a></div>
 	</div>
 	<div class="row mt-2">
 		<div class="display-3">HTTP 클라이언트 접속 정보</div>
