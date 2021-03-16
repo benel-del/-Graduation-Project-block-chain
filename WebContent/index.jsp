@@ -10,7 +10,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="frame.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
 <title>log data collection page</title>
 </head>
 <%
@@ -28,28 +29,68 @@
 	else upload = false;
 %>
 <body>
+	
+<body>
 	<form method="post" action="fileUpload.jsp" enctype="Multipart/form-data">
-		<div class="fileUpload">
-			<input type="radio" name="option" class="upload" id="encrypt" value="encrypt" checked onclick="radio(0);"><label for="encrypt">encrypt</label>
-			<input type="radio" name="option" class="upload" id="decrypt" value="decrypt" onclick="radio(1);"><label for="decrypt">decrypt</label>
-			<input type="file" name="fileUpload" id="file" class="upload" required accept="text/css, text/html, text/javascript, text/plain">
-			<label for="password">password :</label>
-			<input type="text" name="password" id="password" class="upload" maxlength="20" placeholder="5~20 영어" pattern="[A-Za-z]+" autofocus required>
-			<input type="text" id="state" class="upload" value="No files currently selected for upload" readonly>
+	<div class="container">
+	<div class="row align-items-center mt-5">
+		<div class="col-sm-2">
+			<div class="form-check form-check-inline">
+				<input class="form-check-input upload" type="radio" name="option" id="encrypt" value="encrypt" checked onclick="radio(0);">
+				<label class="form-check-label" for="encrypt">encrypt</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input upload" type="radio" name="option" id="decrypt" value="decrypt" onclick="radio(1);">
+				<label class="form-check-label" for="decrypt">decrypt</label>
+			</div>
 		</div>
-		<p id="format">DECRYPT FILE MUST BE "_enc.txt" FORMAT</p><br>
-		<div class="left">
-			<button id="upload">UPLOAD</button>
-			<input type="text" id="stateUpload" class="loadState" readonly>
-			<textarea id="original" name="original" readonly></textarea>
+		<div class="col-sm-2">
+			<input type="file" name="fileUpload" id="file" class="form-control form-control upload" required accept="text/css, text/html, text/javascript, text/plain">
 		</div>
-	</form>
-
-	<div class="center"><button onclick="actionFile();" id="action">>></button></div>
-	<div class="right">
-		<button id="download" class="download">DOWNLOAD</button>
-		<input type="text" id="stateDownload" class="loadState" readonly>
-		<textarea id="result" readonly></textarea>
+		<div class="col-sm-1">
+			<label for="password" class="col-form-label">Password: </label>
+		</div>
+		<div class="col-sm-2">
+			<input type="password" id="password" class="form-control upload" maxlength="20" placeholder="5~20 영어" pattern="[A-Za-z]+" autofocus required aria-describedby="passwordHelpInline">
+		</div>
+		<div class="col-sm-2">
+			<span id="passwordHelpInline" class="form-text"> Must be 5-20 English characters long. </span>
+		</div>
+		<div class="col-sm-3">
+	        <input type="text" id="state" class="form-control upload" placeholder="No files currently selected for upload" readonly>
+		</div>
+	</div>
+	<div class="row mt-2">
+		<div class="alert alert-danger" role="alert" id="format">
+			<span>DECRYPT FILE MUST BE "_enc.txt" FORMAT</span>
+		</div>
+	</div>
+	<div class="row mt-4">
+		<div class="col-sm-2">
+			<button type="button" class="btn btn-primary btn left" id="upload">UPLOAD</button>
+		</div>
+		<div class="col-sm-3">
+			<input type="text" id="stateUpload" class="form-control input-lg loadState" placeholder="" readonly>
+		</div>
+		<div class="col-sm-2"></div>
+		<div class="col-sm-2">
+			<button type="button" class="btn btn-primary btn download right" id="download">DOWNLOAD</button>
+		</div>
+		<div class="col-sm-3">
+			<input type="text" id="stateDownload right" class="form-control input-lg loadState" placeholder="" readonly>
+		</div>
+	</div>
+	<div class="row mt-4">
+		<div class="col-sm-5">
+			<textarea class="form-control" id="original" name="original" rows="20" readonly></textarea>
+		</div>
+		<div class="col-sm-2 d-flex justify-content-center align-items-center">
+			<button type="button" onclick="actionFile();" id="action">>></button>
+		</div>
+		<div class="col-sm-5">
+			<textarea class="form-control" id="result" rows="20" readonly></textarea>
+		</div>
+	</div>
 	</div>
 	
 <script type="text/javascript">
