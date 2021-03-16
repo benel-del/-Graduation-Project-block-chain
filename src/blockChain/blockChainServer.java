@@ -172,7 +172,7 @@ public class blockChainServer {
 		return index;
 	}
 	
-	static ArrayList<String> getChain(String file) throws NumberFormatException, Exception{
+	static ArrayList<String> getChain(String file) throws NumberFormatException, Exception{	// accessed by socket
 		int index = getIndex(file);
 		if(index != -1) {
 			ArrayList<block> b = chain.get(index);

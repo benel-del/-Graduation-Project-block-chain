@@ -10,6 +10,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -42,6 +43,7 @@ public class Log extends HttpServlet {
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
+	@SuppressWarnings("unchecked")
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		// TODO Auto-generated method stub
@@ -51,10 +53,13 @@ public class Log extends HttpServlet {
 		option = request.getParameterValues("option");
 
 		try {
-			socketClient socket = new socketClient(fileName);
-			ArrayList<String> originalFile = blockDAO.readLogFile_client(fileName);
-			ArrayList<String> content = socket.getContent();
+			HttpSession session = request.getSession();
+			ArrayList<String> allName = (ArrayList<String>) session.getAttribute("chainName");
+			ArrayList<ArrayList<String>> allChain = (ArrayList<ArrayList<String>>) session.getAttribute("chainContent");
 			
+			ArrayList<String> content = allChain.get(getIndex(allName, fileName));
+			ArrayList<String> originalFile = blockDAO.readLogFile_client(fileName);
+
 			String[] line = new String[2];
 			String[] splitServ = {""};
 			String[] splitBlock;
@@ -120,5 +125,14 @@ public class Log extends HttpServlet {
     	temp2.put(code, temp);
     	json.add(temp2);
     }
+    
+    private int getIndex(ArrayList<String> files, String name) {
+		for(int i = 0; i < files.size(); i++) {
+			if(files.get(i).equals(name)) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
 }

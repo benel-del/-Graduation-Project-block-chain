@@ -68,16 +68,12 @@ public class socketClient {
 		}
 	}
 	
-	public ArrayList<ArrayList<String>> getAllChain() {
-		return chain;
+	public ArrayList<String> getAllChainName() {
+		return files;
 	}
 	
-	public ArrayList<String> getContent(String file){
-		int index = getIndex(file);
-		if(index == -1)
-			return null;
-		else
-			return chain.get(index);
+	public ArrayList<ArrayList<String>> getAllChainContent() {
+		return chain;
 	}
 	
 	private int getIndex(String name) {
@@ -89,7 +85,7 @@ public class socketClient {
 		return -1;
 	}
 	
-	public String getTime() {
+	private String getTime() {
         String threadName = Thread.currentThread().getName();
         SimpleDateFormat f = new SimpleDateFormat("[hh:mm:ss]");
         return f.format(new Date()) + threadName;
