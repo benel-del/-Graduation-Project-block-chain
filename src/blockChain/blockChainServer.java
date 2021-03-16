@@ -12,6 +12,8 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -30,15 +32,44 @@ class Sockets extends Thread {
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			PrintWriter pw = new PrintWriter(client.getOutputStream());
 			
-            String file = br.readLine();
-            ArrayList<String> list = blockChainServer.getChain(file);
+            String input = br.readLine();
+            if(input.equals("constructor")) {
+            	ArrayList<String> lists = blockChainServer.getFiles();
+                pw.println(lists.size());	// block chain number
+            	for(int j = 0; j < lists.size(); j++) {
+            		pw.println(lists.get(j));	// file name
+            		ArrayList<String> list = blockChainServer.getChain(lists.get(j));
+            		for(int i = 0; i < list.size(); i++) {
+            			if(!list.get(i).contains("logView.jsp"))
+            				pw.println(list.get(i));
+            		}
+            		pw.flush();
+            	}
+        		
+        		System.out.println(getTime() + " to Client > all block chain");
+            }
             
-    		for(int i = 0; i < list.size(); i++) {
-    			if(!list.get(i).contains("logView.jsp"))
-    				pw.println(list.get(i));
-    		}
-    		pw.flush();
-    		System.out.println(getTime() + " to Client > " + file);
+            while(true) {
+            	if((input = br.readLine()).equals("exit"))
+            		break;
+            	
+            	if(input.equals("update")) {
+            		Set<String> isUpdate = blockChainServer.getUpdateFile();
+            		pw.println(isUpdate.size());	// update chain number
+            		for(String file : isUpdate) {
+            			pw.println(file);	// update chain name
+            			ArrayList<String> list = blockChainServer.getChain(file);
+                		for(int i = 0; i < list.size(); i++) {
+                			if(!list.get(i).contains("logView.jsp"))
+                				pw.println(list.get(i));
+                		}
+                		pw.flush();
+            		}
+            		System.out.println(getTime() + " to Client > update block chain");
+            	}
+            }
+            
+    		
 
 		} catch (Exception e) {
             e.printStackTrace();
@@ -73,9 +104,9 @@ public class blockChainServer {
 	}
 	
 	static private RSA rsa = new RSA();
-	static ArrayList<fileInfo> files = new ArrayList<>();
-	static ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
-	
+	static private ArrayList<fileInfo> files = new ArrayList<>();
+	static private ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
+	static private Set<String> isUpdate = new HashSet<>();
 	static public void main(String[] args) throws Exception {
 		rsa.setKey();
 		blockChain();
@@ -99,7 +130,8 @@ public class blockChainServer {
 		final ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
 		exec.scheduleAtFixedRate(new Runnable(){
 			public void run(){
-				try {					
+				try {
+					isUpdate.clear();
 					ArrayList<String> files = readUpdateFile();
 					for(int i = 0; i < files.size(); i++) {
 						updateChain(files.get(i));
@@ -123,6 +155,7 @@ public class blockChainServer {
 			for(int i = files.get(index).lastIndex; i < Line.size(); i++)
 				str += Line.get(i) + "\n";
 			if(!str.equals("")) {
+				isUpdate.add(files.get(index).name);
 				chain.get(index).add(new block(sign(index), str));	// create block
 				files.get(index).setLastIndex(Line.size());
 				System.out.println("[updateChain] " + files.get(index).name + " - create new block[" + (chain.get(index).size()-1) + "]");
@@ -146,7 +179,7 @@ public class blockChainServer {
 			ArrayList<String> str = new ArrayList<>();
 
 			for(int i = 1; i < b.size(); i++){
-				int dec = Integer.parseInt(rsa.decrypt(b.get(i).sign, rsa.getPublicKey()));
+				int dec = Integer.parseInt(rsa.decrypt(b.get(i).getSign(), rsa.getPublicKey()));
 				int hash = b.get(i-1).hashCode();
 				if(dec != hash){	// verification
 					str.add("[hashcode error] " + file);
@@ -154,7 +187,7 @@ public class blockChainServer {
 				}
 				else {
 					//System.out.println("[chain content] " + b.get(i).content);
-					str.add(b.get(i).content);
+					str.add(b.get(i).getContent());
 				}
 			}
 			//System.out.println("[getChain] get block chain - " + file);
@@ -163,6 +196,17 @@ public class blockChainServer {
 		
 		System.out.println("[getChain] NOT EXIST block chain - " + file);
 		return null;
+	}
+	
+	static ArrayList<String> getFiles() {
+		ArrayList<String> file = new ArrayList<>();
+		for(int i = 0; i < files.size(); i++)
+			file.add(files.get(i).name);
+		return file;
+	}
+	
+	static Set<String> getUpdateFile() {
+		return isUpdate;
 	}
 	
 	static private String sign(int index) throws Exception {
