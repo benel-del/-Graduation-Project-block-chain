@@ -16,6 +16,13 @@
 </head>
 <body>
 	<%
+	if(session.getAttribute("userID") == null){
+		PrintWriter script = response.getWriter();
+		script.println("<script>");
+		script.println("history.back()");
+		script.println("</script>");
+	}
+
 	String optionList[] = {"Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"};
 	ArrayList<String> files = blockDAO.readAllFile();		// all files
 	%>
