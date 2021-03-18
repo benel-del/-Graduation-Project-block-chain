@@ -59,8 +59,8 @@
 		</div>
 	</div>
 	<div class="row mt-2">
-		<div class="alert alert-danger" role="alert">
-			<span id="format">DECRYPT FILE MUST BE "_enc.txt" FORMAT</span>
+		<div class="alert alert-danger" id="format" role="alert">
+			<span>DECRYPT FILE MUST BE "_enc.txt" FORMAT</span>
 		</div>
 	</div>
 	<div class="row mt-4">
