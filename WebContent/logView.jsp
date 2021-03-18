@@ -140,12 +140,12 @@
 		                    dataType:"json"
 		            })
 		            .done(function(json) {
-	                    $table.append("<tr></tr>");
+						$table.append("<tr><td>Status</td></tr>");
 						$.each(optionChecked, function(i, v) {
 								$table.children('tr:eq(0)').append('<td>'+optionList[v]+'</td>');
 						})
 	                    $.each(json, function(jarrKey, jarrValue){
-							$table.append("<tr><td>Status</td></tr>");
+		                    $table.append("<tr></tr>");
 							$.each(jarrValue, function(jobKey, jobValue) {
 								$tr = $table.children('tr:eq('+(jarrKey+1)+')');
 								if (jobKey==1) {
