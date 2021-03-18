@@ -151,7 +151,7 @@
 		                    dataType:"json"
 		            })
 		            .done(function(json) {
-	                    $table.append("<tr><td>status</td></tr>");
+	                    $table.append("<tr></tr>");
 						$.each(optionChecked, function(i, v) {
 								$table.children('tr:eq(0)').append('<td>'+optionList[v]+'</td>');
 						})
