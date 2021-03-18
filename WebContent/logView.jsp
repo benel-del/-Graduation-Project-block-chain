@@ -38,11 +38,33 @@
 	ArrayList<String> files = blockDAO.readAllFile();		// all files
 	%>
 	<div class="container-fluid">
-	<div class="row mt-5 file">
-		<div class="lead">HTTP 클라이언트 접속 정보</div>
-	</div>
-	<div class="row mt-2">
-		<div class="display-3">HTTP 클라이언트 접속 정보</div>
+	<div class="row mt-5">
+		<div class="col-sm-9">
+			<div class="row file">
+				<div class="lead">HTTP 클라이언트 접속 정보</div>
+			</div>
+			<div class="row mt-2">
+				<div class="display-3">HTTP 클라이언트 접속 정보</div>
+			</div>
+		</div>
+		<div class="col-sm-3 shadow-sm bg-light rounded d-flex flex-column pt-2">
+			<div>
+				<span class="badge bg-success">101A</span>
+				<span>Server log is different</span>
+			</div>
+			<div>
+				<span class="badge bg-danger">101B</span>
+				<span>Blockchain log is different</span>
+			</div>
+			<div>
+				<span class="badge bg-primary">102</span>
+				<span> Additional server log</span>
+			</div>
+			<div>
+				<span class="badge bg-secondary">103</span>
+				<span> Additional blockchain log</span>
+			</div>
+		</div>
 	</div>
 	<div class="row mt-5 align-items-center">
 		<div class="col-sm-2 date">
@@ -57,7 +79,7 @@
 			</select>
 		</div>
 	</div>
-	<div class="row mt-3" id="option">
+	<div class="row mt-5" id="option">
 		<div class="col-sm-2">
 			<span>옵션</span>
 		</div>
