@@ -103,7 +103,7 @@
 	</div>
 	<div class="row mt-5">
 		<div class="col-sm-10"></div>
-		<button type="button" class="col-sm-1 btn btn-primary">submit</button>
+		<button type="button" class="col-sm-1 btn btn-primary" id="submit">submit</button>
 	</div>
 	<table class="table table-hover mt-5"><tbody></tbody></table>
 	</div>
@@ -123,7 +123,7 @@
 				$('input:checkbox#8').prop("checked", true);
 			})
 			
-		    $('input:button').on('click', function() {
+		    $('#submit').on('click', function() {
 		            var optionChecked = [];
 		            $('input:checkbox[name=option]:checked').each(function() {
 		                    optionChecked.push($(this).val());
