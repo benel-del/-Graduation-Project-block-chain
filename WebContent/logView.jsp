@@ -113,7 +113,7 @@
 			$select = $('#select');
 			$option = $('div#option');
 			$table = $('table > tbody');
-			var optionList = ["Status", "Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"];
+			var optionList = ["Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"];
 
 			$('#all').on('click', function() {
 				if ($(this).is(':checked')) {
@@ -156,7 +156,7 @@
 								$table.children('tr:eq(0)').append('<td>'+optionList[v]+'</td>');
 						})
 	                    $.each(json, function(jarrKey, jarrValue){
-							$table.append("<tr></tr>");
+							$table.append("<tr><td>Status</td></tr>");
 							$.each(jarrValue, function(jobKey, jobValue) {
 								$tr = $table.children('tr:eq('+(jarrKey+1)+')');
 								if (jobKey==1) {
