@@ -115,22 +115,12 @@
 			var optionList = ["Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"];
 
 			$('#all').on('click', function() {
-				if ($(this).is(':checked')) {
-					$('input:checkbox[name=option]').prop("checked", true);
-				}
-				else {
-					$('input:checkbox[name=option]').prop("checked", false);
-					$('input:checkbox#0').prop("checked", true);
-					$('input:checkbox#13').prop("checked", true);
-				}
+				$('input:checkbox[name=option]').prop("checked", true);
 			})
-			
 			$('#none').on('click', function() {
-				if ($(this).is(':checked')) {
-					$('input:checkbox[name=option]').prop("checked", false);
-					$('input:checkbox#0').prop("checked", true);
-					$('input:checkbox#13').prop("checked", true);
-				}
+				$('input:checkbox[name=option]').prop("checked", false);
+				$('input:checkbox#0').prop("checked", true);
+				$('input:checkbox#8').prop("checked", true);
 			})
 			
 		    $('input:button').on('click', function() {
