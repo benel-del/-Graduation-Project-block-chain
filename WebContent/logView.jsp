@@ -79,7 +79,14 @@
 			</select>
 		</div>
 	</div>
-	<div class="row mt-5" id="option">
+	<div class="row mt-3">
+		<div class="col-sm-11"></div>
+		<div class="col-sm-1 d-flex justify-content-end">
+		<button type="button" class="btn btn-outline-dark btn-sm" id="all">ALL</button>
+		<button type="button" class="btn btn-outline-dark btn-sm" id="none">RESET</button>
+		</div>
+	</div>
+	<div class="row mt-3" id="option">
 		<div class="col-sm-2">
 			<span>옵션</span>
 		</div>
@@ -93,16 +100,8 @@
 			if (i==4||i==8) out.println("\n<div class=\"w-100\"></div>\n<div class=\"col-sm-2\"></div>");
 			}
 		%>
-		<div class="col-sm-2 form-check form-switch">
-			<input class="form-check-input" type="checkbox" id="all">
-			<label class="form-check-label" for="all">ALL</label>
-		</div>
-		<div class="col-sm-2 form-check form-switch">
-			<input class="form-check-input" type="checkbox" id="none">
-			<label class="form-check-label" for="none">NONE</label>
-		</div>
 	</div>
-	<div class="row mt-3">
+	<div class="row mt-5">
 		<div class="col-sm-10"></div>
 		<button type="button" class="col-sm-1 btn btn-primary">submit</button>
 	</div>
