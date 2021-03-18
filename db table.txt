@@ -10,3 +10,45 @@ create table file(
 	resultFileSize varchar(100) default 0,
 	fileOption varchar(20)
 );
+
+
+# block chain server
+
+create table USER(
+	userID varchar(200) primary key,
+	userPW varchar(200) not null,
+	publicKey varchar(200)
+);
+create view VIEW_USER as select userID, publicKey from USER;
+
+create table LOG(
+	f_name varchar(200) primary key,
+	location varchar(200) not null,
+	last_update_time timestamp not null,
+	last_read_line int not null default -1
+);
+
+create view VIEW_LOG as select f_name from LOG;
+
+create table logfilename(
+	no int auto_increment primary key,
+	content text not null
+);
+
+# block chain user
+create table userID_BlockChain(
+	f_name varchar(200) primary key,
+	block_size int not null default 0
+);
+
+create table userID_log(
+	no int not null default 0,
+	sign varchar(300) not null,
+	content  text not null,
+	state varchar(10)
+);
+
+create table userID_rsaKey(
+	publicKey varchar(200),
+	privateKey varchar(200)
+);

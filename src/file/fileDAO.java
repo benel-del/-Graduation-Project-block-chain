@@ -17,7 +17,7 @@ public class fileDAO {
 	
 	public fileDAO(){
 		try {
-			String dbURL = "jdbc:mysql://localhost:3306/block?";
+			String dbURL = "jdbc:mysql://localhost:3306/file?";
 			String dbID = "root";
 			String dbPassword = "Benel&Bende1";
 			Class.forName("com.mysql.cj.jdbc.Driver");	

@@ -63,29 +63,29 @@ p {
 	font-family: monospace; 
 }
 
-.login_page{
+.admin_page{
 	width: 35%;
 	margin: 50px auto;
 	padding: 20px;
 }
-.login_header{
+.admin_header{
 	margin: 30px;
 	padding: 10px;
 	text-align: center;
 }
-.login_form{
+.admin_form{
 	margin: 20px;
 	padding: 10px;
 	text-align: center;
 }
-.login_form table{
+.admin_form table{
 	margin: auto;
 }
-.login_form input{
+.admin_form input{
 	width: 180px;
 	height: 30px;
 }
-.login_form .login_submit-btn{
+.admin_form .admin_submit-btn{
 	height: 80px;
 	width: 80px;
 	padding: auto;

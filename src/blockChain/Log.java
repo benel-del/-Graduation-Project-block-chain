@@ -53,11 +53,7 @@ public class Log extends HttpServlet {
 		option = request.getParameterValues("option");
 
 		try {
-			HttpSession session = request.getSession();
-			ArrayList<String> allName = (ArrayList<String>) session.getAttribute("chainName");
-			ArrayList<ArrayList<String>> allChain = (ArrayList<ArrayList<String>>) session.getAttribute("chainContent");
-			
-			ArrayList<String> content = allChain.get(getIndex(allName, fileName));
+			//ArrayList<String> content = allChain.get(getIndex(allName, fileName));
 			ArrayList<String> originalFile = blockDAO.readLogFile_client(fileName);
 
 			String[] line = new String[2];

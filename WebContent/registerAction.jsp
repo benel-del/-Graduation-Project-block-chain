@@ -14,36 +14,32 @@
 		script.println("location.href = 'logView.jsp'");
 		script.println("</script>");
 	}
-
-	adminDAO loginDB = new adminDAO();
-	int result = loginDB.isUser(login.getUserID());
 	
+	adminDAO register = new adminDAO();
+	int result = register.isUser(login.getUserID());
 	if(result == 1){
-		result = loginDB.connect(login.getUserID(), login.getUserPassword(), 1);
-		if(result == 1){
-			session.setAttribute("userID", login.getUserID());
-			
+		PrintWriter script = response.getWriter();
+		script.println("<script>");
+		script.println("alert('이미 존재하는 아이디 입니다.')");
+		script.println("history.back()");
+		script.println("</script>");
+	}else if(result == -1){
+		if(register.connect(login.getUserID(), login.getUserPassword(), 0) == 1){	
+			PrintWriter script = response.getWriter();
 			// block chain server start
 			blockChain bc = new blockChain(login.getUserID(), login.getUserPassword());
 			bc.start();
-						
-			PrintWriter script = response.getWriter();
+			
 			script.println("<script>");
-			script.println("location.href = 'logView.jsp'");
-			script.println("</script>");
-		}
-		else{
-			PrintWriter script = response.getWriter();
-			script.println("<script>");
-			script.println("history.back()");
+			script.println("alert('complete')");
+			script.println("location.href = 'admin.jsp'");
 			script.println("</script>");
 		}
 	}
-	else{
-		PrintWriter script = response.getWriter();
-		script.println("<script>");
-		script.println("alert('존재하지 않는 아이디입니다.')");
-		script.println("history.back()");
-		script.println("</script>");
-	}
+
+	PrintWriter script = response.getWriter();
+	script.println("<script>");
+	script.println("alert('DB 오류')");
+	script.println("history.back()");
+	script.println("</script>");
 %>
