@@ -56,7 +56,7 @@
 			<label for="password" class="col-form-label">Password: </label>
 		</div>
 		<div class="col-sm-2">
-			<input type="password" id="password" class="form-control upload" maxlength="20" placeholder="5~20 영어" pattern="[A-Za-z]+" autofocus required aria-describedby="passwordHelpInline">
+			<input type="password" name="password" id="password" class="form-control upload" maxlength="20" placeholder="5~20 영어" pattern="[A-Za-z]+" autofocus required aria-describedby="passwordHelpInline">
 		</div>
 		<div class="col-sm-2">
 			<span id="passwordHelpInline" class="form-text"> Must be 5-20 English characters long. </span>
@@ -72,7 +72,7 @@
 	</div>
 	<div class="row mt-4">
 		<div class="col-sm-2 left">
-			<button type="button" class="btn btn-primary btn" id="upload">UPLOAD</button>
+			<button class="btn btn-primary btn" id="upload">UPLOAD</button>
 		</div>
 		<div class="col-sm-3 left">
 			<input type="text" id="stateUpload" class="form-control input-lg loadState" readonly>
@@ -90,7 +90,7 @@
 			<textarea class="form-control" id="original" name="original" rows="20" readonly></textarea>
 		</div>
 		<div class="col-sm-2 d-flex justify-content-center align-items-center">
-			<button onclick="actionFile();" id="action">>></button>
+			<button type="button" onclick="actionFile();" id="action">>></button>
 		</div>
 		<div class="col-sm-5 right">
 			<textarea class="form-control" id="result" rows="20" readonly></textarea>
