@@ -33,40 +33,24 @@ class Sockets extends Thread {
 			
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			PrintWriter pw = new PrintWriter(client.getOutputStream());
-			
-			String input = br.readLine();
-			if(input.equals("register")) {
-				String userID = br.readLine();
-	            String userPW = br.readLine();
-	            String userKey = br.readLine();
-	            
-	            if(blockChainServer.insertUser(userID, userPW, userKey) == 1) {
-	            	// register, grant
-	            	addUser(userID, userPW);
-	            	
-	            	pw.println("complete");
-	            	System.out.println(getTime() + "user register complete");
-	            }
-	            else {
-	            	pw.println("db error");
-	            }
-			}
-			else if(input.equals("login")) {
-				String userID = br.readLine();
-	            String userPW = br.readLine();
-	            
-	            int result = blockChainServer.isUser(userID, userPW);
-	            if(result == 1) {
-	            	pw.println("complete");
-	            	System.out.println(getTime() + "user indentify");
-	            }
-	            else if(result == -1) {
-	            	pw.println("no");
-	            	System.out.println(getTime() + "not registered user");
-	            }
-	            
-			}
+
+			String userID = br.readLine();
+            String userPW = br.readLine();
+
+            int result = blockChainServer.userCheck(userID, userPW);
+            if(result == 1) {
+            	pw.println("complete");
+            	System.out.println(getTime() + "user indentify");
+            }
+            else if(result == -1) {
+            	pw.println("no");
+            	System.out.println(getTime() + "not registered user");
+            }
+            pw.flush();
             
+            String userKey = br.readLine();
+            blockChainServer.updateKey(userID, userKey);
+
 		} catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -78,34 +62,7 @@ class Sockets extends Thread {
         }
 	}
 	
-	private void addUser(String userID, String userPW) throws ClassNotFoundException, SQLException {
-		String dbURL = "jdbc:mysql://localhost:3306/mysql?";
-		String dbID = "root";
-		String dbPassword = "Benel&Bende1";
-		Class.forName("com.mysql.cj.jdbc.Driver");	
-		Connection conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
-		
-		String sql = "CREATE USER ?@localhost identified by ?";
-		PreparedStatement pstmt = conn.prepareStatement(sql);
-		pstmt.setString(1, userID);
-		pstmt.setString(2, userPW);
-		pstmt.executeUpdate();
-		
-		sql = "CREATE DATABASE " + userID;
-		pstmt = conn.prepareStatement(sql);
-		pstmt.executeUpdate();
-		
-		// grant
-		sql = "GRANT select ON center.VIEW_LOG TO " + userID + "@localhost";
-		pstmt = conn.prepareStatement(sql);
-		pstmt.executeUpdate();
-		
-		sql = "GRANT select ON center.VIEW_USER TO " + userID + "@localhost";
-		pstmt = conn.prepareStatement(sql);
-		pstmt.executeUpdate();
-	}
-	
-	public String getTime() {
+	private String getTime() {
         String threadName = Thread.currentThread().getName();
         SimpleDateFormat f = new SimpleDateFormat("[hh:mm:ss]");
         return f.format(new Date()) + threadName;
@@ -122,7 +79,7 @@ public class blockChainServer {
 		String dbPassword = "Benel&Bende1";
 		Class.forName("com.mysql.cj.jdbc.Driver");	
 		conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
-
+		
 		ArrayList<String> file = getFilesList();
 		for(int i = 0; i < file.size(); i++) {
 			files.add(file.get(i));
@@ -159,22 +116,7 @@ public class blockChainServer {
 
 	}
 	
-	static int insertUser(String userID, String userPW, String userKey) {
-		String sql = "INSERT INTO USER(userID, userPW, publicKey) VALUES(?, ?, ?);";
-		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, userID);
-			pstmt.setString(2, userPW);
-			pstmt.setString(3, userKey);
-			pstmt.executeUpdate();
-			return 1;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return -1;	// db error
-	}
-	
-	static int isUser(String userID, String userPW) {
+	static int userCheck(String userID, String userPW) {	// socket
 		String sql = "SELECT userID FROM USER WHERE userID = ? AND userPW = ?;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -189,6 +131,20 @@ public class blockChainServer {
 			ex.printStackTrace();
 		}
 		return -2;	// db error
+	}
+	
+	static int updateKey(String userID, String key) {	// socket
+		String sql = "UPDATE USER SET publicKey=? WHERE userID=?;";
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, key);
+			pstmt.setString(2, userID);
+			pstmt.executeUpdate();
+			return 1;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return -1;	// db error
 	}
 
 	static private int insertFile(String file) {

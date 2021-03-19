@@ -3,10 +3,18 @@ package blockChain;
 public class block {
 	private String sign;
 	private String content;
+	private String state;
 	
 	block(String sign, String content){
 		this.sign = sign;
 		this.content = content;
+		this.state = "";
+	}
+	
+	block(String sign, String content, String state){
+		this.sign = sign;
+		this.content = content;
+		this.state = state;
 	}
 
 	public String getSign() {
@@ -14,5 +22,8 @@ public class block {
 	}
 	public String getContent() {
 		return content;
-	}	
+	}
+	public String getState() {
+		return state;
+	}
 }

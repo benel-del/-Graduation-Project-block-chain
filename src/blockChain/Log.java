@@ -20,6 +20,11 @@ import org.json.simple.JSONObject;
  */
 @WebServlet("/Log")
 public class Log extends HttpServlet {
+	
+	// block chain server start
+			blockChain bc = new blockChain(login.getUserID(), login.getUserPassword());
+			bc.start();
+			
 	static String[] option;
 	static JSONArray json = new JSONArray();
 	private static final long serialVersionUID = 1L;

@@ -15,17 +15,11 @@
 		script.println("</script>");
 	}
 
-	adminDAO loginDB = new adminDAO();
-	int result = loginDB.isUser(login.getUserID());
+	adminDAO loginDB = new adminDAO(login.getUserID(), login.getUserPassword());
 	
-	if(result == 1){
-		result = loginDB.connect(login.getUserID(), login.getUserPassword(), 1);
-		if(result == 1){
+	if(loginDB.isUser() == 1){
+		if(loginDB.connect() == 1){
 			session.setAttribute("userID", login.getUserID());
-			
-			// block chain server start
-			blockChain bc = new blockChain(login.getUserID(), login.getUserPassword());
-			bc.start();
 						
 			PrintWriter script = response.getWriter();
 			script.println("<script>");

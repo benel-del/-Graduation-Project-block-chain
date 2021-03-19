@@ -15,26 +15,22 @@
 		script.println("</script>");
 	}
 	
-	adminDAO register = new adminDAO();
-	int result = register.isUser(login.getUserID());
+	adminDAO register = new adminDAO(login.getUserID(), login.getUserPassword());
+	int result = register.isUser();
 	if(result == 1){
 		PrintWriter script = response.getWriter();
 		script.println("<script>");
 		script.println("alert('이미 존재하는 아이디 입니다.')");
 		script.println("history.back()");
 		script.println("</script>");
-	}else if(result == -1){
-		if(register.connect(login.getUserID(), login.getUserPassword(), 0) == 1){	
-			PrintWriter script = response.getWriter();
-			// block chain server start
-			blockChain bc = new blockChain(login.getUserID(), login.getUserPassword());
-			bc.start();
-			
-			script.println("<script>");
-			script.println("alert('complete')");
-			script.println("location.href = 'admin.jsp'");
-			script.println("</script>");
-		}
+	} else if(result == -1){
+		
+		
+		PrintWriter script = response.getWriter();
+		script.println("<script>");
+		script.println("alert('complete')");
+		script.println("location.href = 'admin.jsp'");
+		script.println("</script>");
 	}
 
 	PrintWriter script = response.getWriter();
