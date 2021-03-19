@@ -12,7 +12,14 @@
 <meta charset="UTF-8">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
-<title>log data collection page</title>
+<title>Insert title here</title>
+<style>
+@media (min-width: 1405px) {
+  .container-fluid{
+    width: 1400px;
+  }
+}
+</style>
 </head>
 <%
 	fileDAO f = new fileDAO();
@@ -29,11 +36,9 @@
 	else upload = false;
 %>
 <body>
-	
-<body>
 	<form method="post" action="fileUpload.jsp" enctype="Multipart/form-data">
-	<div class="container">
-	<div class="row align-items-center mt-5">
+	<div class="container-fluid">
+	<div class="row align-items-center mt-5 file upload">
 		<div class="col-sm-2">
 			<div class="form-check form-check-inline">
 				<input class="form-check-input upload" type="radio" name="option" id="encrypt" value="encrypt" checked onclick="radio(0);">
@@ -57,43 +62,44 @@
 			<span id="passwordHelpInline" class="form-text"> Must be 5-20 English characters long. </span>
 		</div>
 		<div class="col-sm-3">
-	        <input type="text" id="state" class="form-control upload" placeholder="No files currently selected for upload" readonly>
+	        <input type="text" id="state" class="form-control upload" value="No files currently selected for upload" readonly>
 		</div>
 	</div>
 	<div class="row mt-2">
-		<div class="alert alert-danger" role="alert" id="format">
+		<div class="alert alert-danger" id="format" role="alert">
 			<span>DECRYPT FILE MUST BE "_enc.txt" FORMAT</span>
 		</div>
 	</div>
 	<div class="row mt-4">
-		<div class="col-sm-2">
-			<button type="button" class="btn btn-primary btn left" id="upload">UPLOAD</button>
+		<div class="col-sm-2 left">
+			<button type="button" class="btn btn-primary btn" id="upload">UPLOAD</button>
 		</div>
-		<div class="col-sm-3">
-			<input type="text" id="stateUpload" class="form-control input-lg loadState" placeholder="" readonly>
+		<div class="col-sm-3 left">
+			<input type="text" id="stateUpload" class="form-control input-lg loadState" readonly>
 		</div>
 		<div class="col-sm-2"></div>
-		<div class="col-sm-2">
-			<button type="button" class="btn btn-primary btn download right" id="download">DOWNLOAD</button>
+		<div class="col-sm-2 right">
+			<button type="button" class="btn btn-primary btn download" id="download">DOWNLOAD</button>
 		</div>
-		<div class="col-sm-3">
-			<input type="text" id="stateDownload right" class="form-control input-lg loadState" placeholder="" readonly>
+		<div class="col-sm-3 right">
+			<input type="text" id="stateDownload" class="form-control input-lg loadState" readonly>
 		</div>
 	</div>
 	<div class="row mt-4">
-		<div class="col-sm-5">
+		<div class="col-sm-5 left">
 			<textarea class="form-control" id="original" name="original" rows="20" readonly></textarea>
 		</div>
 		<div class="col-sm-2 d-flex justify-content-center align-items-center">
-			<button type="button" onclick="actionFile();" id="action">>></button>
+			<button onclick="actionFile();" id="action">>></button>
 		</div>
-		<div class="col-sm-5">
+		<div class="col-sm-5 right">
 			<textarea class="form-control" id="result" rows="20" readonly></textarea>
 		</div>
 	</div>
 	</div>
+	</form>
 	
-<script type="text/javascript">
+	<script type="text/javascript">
 	history.replaceState({}, null, "index.jsp");
 
 
@@ -169,7 +175,7 @@
 	else{
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile";
 		String[] fileNameOfPath = new File(path).list();
-		for(int i = 0; fileNameOfPath != null && i < fileNameOfPath.length; i++){
+		for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
 			System.out.println("delete:" + fileNameOfPath[i]);
 			new File(path + "/" + fileNameOfPath[i]).delete();
 		}
@@ -192,7 +198,7 @@
 			}
 			registerCheck();
 		});
-		
+
 		inputP.addEventListener("change", (evt) => {
 			const pw = evt.target.value;
 			if(pw.length < 5)
