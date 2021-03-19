@@ -1,3 +1,4 @@
+package center;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,33 +24,29 @@ import java.util.Date;
 
 class Sockets extends Thread {
 	Socket client;
-	Sockets(Socket client){
+	Connection conn;
+	Sockets(Socket client) {
 		this.client = client;
 	}
 	
 	public void run() {
 		try {
-			//System.out.println(getTime() + " Client has accepted...");
-			
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			PrintWriter pw = new PrintWriter(client.getOutputStream());
-
+			
 			String userID = br.readLine();
             String userPW = br.readLine();
 
-            int result = blockChainServer.userCheck(userID, userPW);
+            System.out.println(getTime() + " " + userID + ": USER IDENTIFY CHECK");
+            int result = userCheck(userID, userPW);
             if(result == 1) {
             	pw.println("complete");
-            	System.out.println(getTime() + "user indentify");
             }
             else if(result == -1) {
             	pw.println("no");
-            	System.out.println(getTime() + "not registered user");
+            	System.out.println("fail");
             }
             pw.flush();
-            
-            String userKey = br.readLine();
-            blockChainServer.updateKey(userID, userKey);
 
 		} catch (Exception e) {
             e.printStackTrace();
@@ -60,6 +57,27 @@ class Sockets extends Thread {
 				System.out.println(getTime() + "Client close error");
 			}
         }
+	}
+	
+	private int userCheck(String userID, String userPW) {
+		String sql = "SELECT userPW FROM USER WHERE userID = ?;";
+		try {
+			String dbURL = "jdbc:mysql://localhost:3306/center?";
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			conn = DriverManager.getConnection(dbURL, "root", "Benel&Bende1");
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, userID);
+			ResultSet rs = pstmt.executeQuery();
+			if(rs.next()) {
+				if(rs.getString(1).equals(userPW))
+					return 1;
+				else
+					return -1;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return -2;	// db error
 	}
 	
 	private String getTime() {
@@ -73,16 +91,20 @@ public class blockChainServer {
 	static private Connection conn;
 	static private Set<String> files = new HashSet<>();
 	
-	static public void main(String[] args) throws Exception {
-		String dbURL = "jdbc:mysql://localhost:3306/center?";
-		String dbID = "root";
-		String dbPassword = "Benel&Bende1";
-		Class.forName("com.mysql.cj.jdbc.Driver");	
-		conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
+	static public void main(String[] args) {
+		try {
+			String dbURL = "jdbc:mysql://localhost:3306/center?";
+			String dbID = "root";
+			String dbPassword = "Benel&Bende1";
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
+		} catch (ClassNotFoundException | SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}	
 		
 		ArrayList<String> file = getFilesList();
 		for(int i = 0; i < file.size(); i++) {
-			files.add(file.get(i));
 			insertFile(file.get(i));
 			readFile(file.get(i));
 		}
@@ -94,11 +116,13 @@ public class blockChainServer {
 				try {
 					ArrayList<String> file = getUpdateList();
 					for(int i = 0; i < file.size(); i++) {
-						if(files.contains(file.get(i)))
-							updateFile(file.get(i));
+						String[] str = file.get(i).split(" ");
+						String[] str2 = str[3].split("/");
+						if(files.contains(str2[6]))
+							updateFile(file.get(i));	// update LOG last_access_time 
 						else
-							insertFile(file.get(i));
-						readFile(file.get(i));
+							insertFile(file.get(i));	// insert LOG new log file
+						readFile(file.get(i));	// read real file, update log_20210000
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -107,64 +131,50 @@ public class blockChainServer {
 			}
 		}, 0, sleepSec, TimeUnit.SECONDS);
 		
-		ServerSocket server = new ServerSocket(6000);
-		while(true) {
-			Socket client = server.accept();
-			Sockets sockets = new Sockets(client);
-			sockets.start();
-		}
-
-	}
-	
-	static int userCheck(String userID, String userPW) {	// socket
-		String sql = "SELECT userID FROM USER WHERE userID = ? AND userPW = ?;";
+		ServerSocket server;
 		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, userID);
-			pstmt.setString(2, userPW);
-			ResultSet rs = pstmt.executeQuery();
-			if(rs.next()) {
-				return 1;
+			server = new ServerSocket(6013);
+			while(true) {
+				Socket client = server.accept();
+				Sockets sockets = new Sockets(client);
+				sockets.start();
 			}
-			return -1;
-		} catch (Exception ex) {
-			ex.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return -2;	// db error
-	}
-	
-	static int updateKey(String userID, String key) {	// socket
-		String sql = "UPDATE USER SET publicKey=? WHERE userID=?;";
-		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, key);
-			pstmt.setString(2, userID);
-			pstmt.executeUpdate();
-			return 1;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return -1;	// db error
 	}
 
 	static private int insertFile(String file) {
-		// file: 2¿ù 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
+		// file: 2O 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
+		System.out.println(getTime() + "INSERT INTO LOG - " + file);
 		String[] str = file.split(" ");
 		String[] str2 = str[3].split("/");
-		String sql = "INSERT INTO LOG(f_name, location, last_update_time) VALUES(?, ?, ?);";
+		String sql = "INSERT INTO LOG(f_name, real_name, location, last_update_time) VALUES(?, ?, ?, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, str2[6]);
+			String name = tableNaming(str2[6]);
+			pstmt.setString(1, name);
+			pstmt.setString(2, str2[6]);
 			String tmp = "";
 			for(int i = 0; i < 6; i++)
 				tmp += str2[i] + "/";
-			pstmt.setString(2, tmp);
-			pstmt.setString(3, str[0].substring(0, str[0].length()-2) + "-" + str[1] + " " + str[2]);
+			pstmt.setString(3, tmp);
+			pstmt.setString(4, str[0] + " " + str[1] + " " + str[2]);
 			pstmt.executeUpdate();
 			
-			sql = "CREATE TABLE " + str2[6] + " (no int auto_increment primary key, content text not null);";
+			sql = "CREATE TABLE " + name + " (no int auto_increment primary key, content text not null);";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.executeUpdate();
+			
+			sql = "GRANT select ON " + name + " TO user1@localhost";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.executeUpdate();
+			sql = "GRANT select ON " + name + " TO user2@localhost";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.executeUpdate();
+			
+			files.add(str2[6]);
 			return 1;
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -172,14 +182,23 @@ public class blockChainServer {
 		return -1;	// db error
 	}
 	
+	static private String tableNaming(String file) {
+		// file: localhost_access_log.2021-02-27.txt
+		String[] str = file.split("[.]");
+		String[] str2 = str[1].split("-");	// 2021-02-27
+		
+		return "log_" + str2[0] + str2[1] + str2[2];
+	}
+	
 	static private int updateFile(String file) {
-		// file: 2¿ù 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
+		// file: 2O 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
+		System.out.println(getTime() + "UPDATE LOG(last_update_time) - " + file);
 		String[] str = file.split(" ");
 		String[] str2 = str[3].split("/");
-		String sql = "UPDATE LOG SET last_update_time=? WHERE f_name=?;";
+		String sql = "UPDATE LOG SET last_update_time=? WHERE real_name=?;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, str[0].substring(0, str[0].length()-2) + "-" + str[1] + " " + str[2]);
+			pstmt.setString(1, str[0] + " " + str[1] + " " + str[2]);
 			pstmt.setString(2, str2[6]);
 			pstmt.executeUpdate();
 			return 1;
@@ -190,21 +209,25 @@ public class blockChainServer {
 	}
 
 	static private void readFile(String file) {
-		// file: 2¿ù 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
+		// file: 2O 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
 		String[] str = file.split(" ");
 		ArrayList<String> line = readLogFile(str[3]);
-		if(line == null) {
-			delete(str[3]);
+		String[] str2 = str[3].split("/");
+		String name = tableNaming(str2[6]);
+		if(line.size() == 0) {
+			files.remove(str2[6]);
+			delete(name);
 			return ;
 		}
-		String[] str2 = str[3].split("/");
-		int start = getLastLine(str2[6]);
-		String tmp = "";
-		for(int i = start + 1; i < line.size(); i++) {
-			tmp += line.get(i) + "\n";
+		int start = getLastLine(name);
+		if(start > -2) {
+			String tmp = "";
+			for(int i = start + 1; i < line.size(); i++) {
+				tmp += line.get(i) + "\n";
+			}
+			insertLog(name, tmp);
+			setLastLine(name, line.size());
 		}
-		insertLog(str2[6], tmp);
-		setLastLine(str2[6], line.size()-1);
 	}
 	
 	static private int delete(String file) {
@@ -225,6 +248,7 @@ public class blockChainServer {
 	}
 	
 	static private int insertLog(String file, String content) {
+		System.out.println(getTime() + "INSERT INTO log_2021... - " + file);
 		String sql = "INSERT INTO " + file + "(content) VALUES(?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -238,12 +262,13 @@ public class blockChainServer {
 	}
 	
 	static private int getLastLine(String file) {
-		String sql = "SELECT last_read_line FROM LOG WEHRE f_name = ?;";
+		String sql = "SELECT last_read_line FROM LOG WHERE f_name = ?;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, file);
 			ResultSet rs = pstmt.executeQuery();
-			return rs.getInt(1);
+			if(rs.next())
+				return rs.getInt(1);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -305,10 +330,9 @@ public class blockChainServer {
 	
 	static private ArrayList<String> readLogFile(String filename) {
 		ArrayList<String> Line = new ArrayList<>();
-		String path = filename;
 		//System.out.println("[readLogFile] readFile path: "  + path);
 		try {
-			File file = new File(path);
+			File file = new File(filename);
 			FileReader fileReader = new FileReader(file);
 			BufferedReader bufReader = new BufferedReader(fileReader);
 			String line = "";
@@ -318,11 +342,16 @@ public class blockChainServer {
 			}
 			bufReader.close();
 		}catch(FileNotFoundException e) {
-			Line.add("Error:: file not found - " + path);
+			Line.add("Error:: file not found - " + filename);
 		}catch(IOException e) {
 			System.out.println(e);
 		}
 		return Line;
 	}
+	
+	static private String getTime() {
+        SimpleDateFormat f = new SimpleDateFormat("[hh:mm:ss]");
+        return f.format(new Date());
+    }
 	
 }

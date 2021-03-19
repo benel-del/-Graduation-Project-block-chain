@@ -13,40 +13,22 @@ import java.sql.ResultSet;
 public class adminDAO {
 	private Connection conn;
 	private ResultSet rs;
-	private String userID;
-	private String userPW;
-	
-	public adminDAO(String userID, String userPW) throws Exception{
-		this.userID = userID;
-		this.userPW = userPW;
-		
-		String dbURL = "jdbc:mysql://localhost:3306/" + userID + "?";
-		Class.forName("com.mysql.cj.jdbc.Driver");	
-		conn = DriverManager.getConnection(dbURL, userID, userPW);
-	}
-	
-	public int connect() {
-		try{
-			Socket soc = new Socket("localhost", 6000);
-			//System.out.println(getTime() + " Accept to Server Success...");
+
+	public int connect(String userID, String userPW) {
+		try{	
+			Socket soc = new Socket("localhost", 6013);
 			
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
 			
+			System.out.println(" Accept to Server Success...");
 			pw.println(userID);
 			pw.println(userPW);
-			int result = -1;
-			if(br.readLine().equals("complete")) {
-				result = 1;
-				if(keyCheck(userID) == -1) {
-					RSA rsa = new RSA();
-					insertKey(userID, rsa.KeyToStr(rsa.getPublicKey()), rsa.KeyToStr(rsa.getPrivateKey()));
-					pw.println(rsa.KeyToStr(rsa.getPublicKey()));
-				}
-			}
-		
 			pw.flush();
-
+			
+			int result = -1;
+			if(br.readLine().equals("complete"))
+				result = 1;
 			soc.close();
 			return result;
 		} catch(Exception e) {
@@ -55,9 +37,12 @@ public class adminDAO {
 		return -2;
 	}
 	
-	public int isUser() {
-		String sql = "SELECT userID FROM center.VIEW_USER WHERE userID = ?;";
+	public int isUser(String userID) {		
+		String sql = "SELECT userID FROM VIEW_USER WHERE userID = ?;";
 		try {
+			String dbURL = "jdbc:mysql://localhost:3306/center?";
+			Class.forName("com.mysql.cj.jdbc.Driver");	
+			conn = DriverManager.getConnection(dbURL, "root", "Benel&Bende1");
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, userID);
 			rs = pstmt.executeQuery();
@@ -70,35 +55,4 @@ public class adminDAO {
 		}
 		return -2;	// db error
 	}
-
-	private int keyCheck(String userID) {
-		String sql = "SELECT publicKey FROM center.VIEW_USER where userID = ?;";
-		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, userID);
-			rs = pstmt.executeQuery();
-			if(rs.next()) {
-				return 1;
-			}
-			return -1;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return -2;
-	}
-	
-	private int insertKey(String userID, String publicKey, String privateKey) {
-		String sql = "INSERT INTO " + userID +"_RSAKEY(publicKey, privateKey) VALUES(?, ?);";
-		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, publicKey);
-			pstmt.setString(2, privateKey);
-			pstmt.executeUpdate();
-			return 1;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return -1;	// db error
-	}
-
 }

@@ -11,64 +11,37 @@ create table file(
 	fileOption varchar(20)
 );
 
-
-# block chain server
+DROP DATABASE center;
+CREATE DATABASE center;
+USE center;
 
 create table USER(
 	userID varchar(200) primary key,
 	userPW varchar(200) not null,
 	publicKey varchar(200)
 );
+
 create view VIEW_USER as select userID, publicKey from USER;
 
 create table LOG(
 	f_name varchar(200) primary key,
+	real_name varchar(200) not null,
 	location varchar(200) not null,
-	last_update_time timestamp not null,
+	last_update_time varchar(20) not null,
 	last_read_line int not null default -1
 );
 
 create view VIEW_LOG as select f_name from LOG;
 
-create table logfilename(
-	no int auto_increment primary key,
-	content text not null
-);
-
-# block chain user
-create table user1_BlockChain(
-	f_name varchar(200) primary key,
-	block_size int not null default 0
-);
-
-create table user1_RSAKey(
-	publicKey varchar(200),
-	privateKey varchar(200)
-);
-
-create table userID_log(
-	no int not null default 0,
-	sign varchar(300) not null,
-	content  text not null,
-	state varchar(10)
-);
-
-
-
-
-insert into center.user(userID, userPW) values("user1", "admin1");
-insert into center.user(userID, userPW) values("user2", "admin2");
-
-CREATE USER user1@localhost identified by 'admin1';
-CREATE USER user2@localhost identified by 'admin2';
-
-CREATE DATABASE user1;
-CREATE DATABASE user2;
+insert into center.USER(userID, userPW) values("user1", "Admin1!");
+insert into center.USER(userID, userPW) values("user2", "Admin2!");
 
 GRANT select ON center.VIEW_LOG TO user1@localhost;
 GRANT select ON center.VIEW_LOG TO user2@localhost;
 GRANT select ON center.VIEW_USER TO user1@localhost;
 GRANT select ON center.VIEW_USER TO user2@localhost;
+
+#database user1
 
 use user1;
 create table user1_BlockChain(
@@ -80,6 +53,8 @@ create table user1_RSAKey(
 	privateKey varchar(200)
 );
 
+
+#database user2
 use user2;
 create table user2_BlockChain(
 	f_name varchar(200) primary key,
@@ -88,4 +63,13 @@ create table user2_BlockChain(
 create table user2_RSAKey(
 	publicKey varchar(200),
 	privateKey varchar(200)
+);
+
+
+# java code
+create table userID_local_access_0000(
+	no int not null default 0,
+	sign varchar(300) not null,
+	content  text not null,
+	state varchar(10)
 );

@@ -38,10 +38,6 @@
    				</tbody>
 	   		</table>
 	   		</div>
-	   		
-	   		<div class="register">
-	   			<a href="register.jsp">관리자 등록</a>
-	   		</div>
 		</form>
 	</div>
 </body>

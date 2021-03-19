@@ -28,7 +28,6 @@ public class RSA {
 		cipher.init(Cipher.ENCRYPT_MODE, key);
 		byte[] bCipher = cipher.doFinal(data.getBytes());
 		Encoder encoder = Base64.getEncoder();
-
 		String sCipherBase64 = new String(encoder.encode(bCipher));
         return sCipherBase64;
     }
@@ -40,7 +39,6 @@ public class RSA {
 		cipher.init(Cipher.DECRYPT_MODE, key);
 		byte[] bPlain = cipher.doFinal(bCipher);
 		return new String(bPlain);
-
     }
 	
 	public void setPublicKey(String key) throws Exception {

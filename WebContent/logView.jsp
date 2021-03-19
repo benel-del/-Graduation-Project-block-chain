@@ -1,9 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page import="java.io.File" %>
-<%@ page import="blockChain.block" %>
-<%@ page import="blockChain.blockDAO" %>
-<%@ page import="java.util.ArrayList" %>
+<%@ page import="blockChain.blockChain" %>
+<%@ page import="java.util.Set" %>
+<%@ page import="java.util.Iterator" %>
 <%@ page import="java.io.PrintWriter" %>
 <!DOCTYPE html>
 <html>
@@ -24,18 +24,22 @@
 <body>
 	<%
 	String userID = null;
-	if(session.getAttribute("userID") != null){
+	String userPW = null;
+	if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
 		userID = (String) session.getAttribute("userID");
+		userPW = (String) session.getAttribute("userPW");
 	}
-	if(userID == null || userID != null && !userID.equals("v1e3er")){
+	else{
 		PrintWriter script = response.getWriter();
 		script.println("<script>");
 		script.println("history.back()");
 		script.println("</script>");
 	}
 	
+	blockChain blockDAO = new blockChain(userID, userPW);
+	blockDAO.start();
 	String optionList[] = {"Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"};
-	ArrayList<String> files = blockDAO.readAllFile();		// all files
+	Set<String> files = blockDAO.getList();		// all files
 	%>
 	<div class="container-fluid">
 	<div class="row mt-5">
@@ -73,8 +77,9 @@
 		<div class="col-sm-5">
 			 <select class="form-select formm-select-lg" id="select" aria-label="Default select example">
 			<%
-			for(int i = 0; i < files.size(); i++)
-				out.println("<option value='"+i+"'>"+files.get(i)+"</option>");
+			Iterator<String> items = files.iterator();
+			for(int i = 0; items.hasNext(); i++)
+				out.println("<option value='"+i+"'>"+items.next()+"</option>");
 			%>
 			</select>
 		</div>

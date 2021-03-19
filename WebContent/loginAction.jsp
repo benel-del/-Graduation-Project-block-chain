@@ -15,11 +15,11 @@
 		script.println("</script>");
 	}
 
-	adminDAO loginDB = new adminDAO(login.getUserID(), login.getUserPassword());
-	
-	if(loginDB.isUser() == 1){
-		if(loginDB.connect() == 1){
+	adminDAO loginDB = new adminDAO();
+	if(loginDB.isUser(login.getUserID()) == 1){
+		if(loginDB.connect(login.getUserID(), login.getUserPassword()) == 1){
 			session.setAttribute("userID", login.getUserID());
+			session.setAttribute("userPW", login.getUserPassword());
 						
 			PrintWriter script = response.getWriter();
 			script.println("<script>");
