@@ -20,10 +20,10 @@
 		if(loginDB.connect(login.getUserID(), login.getUserPassword()) == 1){
 			session.setAttribute("userID", login.getUserID());
 			session.setAttribute("userPW", login.getUserPassword());
-						
+
 			PrintWriter script = response.getWriter();
 			script.println("<script>");
-			script.println("location.href = 'logView.jsp'");
+			script.println("location.href = 'logsView.jsp'");
 			script.println("</script>");
 		}
 		else{

@@ -7,7 +7,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" http-equiv="refresh" content="60">
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 	<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
@@ -24,7 +24,12 @@
 <body>
 <div class="container-fluid">
 <div class="row mt-5">
-<div class="col-sm-3"></div>
+<div class="col-sm-3">
+	<div class="row file">
+			<div class="lead"><a href="logView.jsp">HTTP 클라이언트 접속 정보</a></div>
+			<div class="lead"><a href="logoutAction.jsp">logout</a></div>
+	</div>
+</div>
 <div class="col-sm-6"><canvas id="myChart"></canvas></div>
 </div>
 </div>

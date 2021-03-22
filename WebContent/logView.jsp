@@ -2,8 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ page import="java.io.File" %>
 <%@ page import="blockChain.blockChain" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.ArrayList" %>
 <%@ page import="java.io.PrintWriter" %>
 <!DOCTYPE html>
 <html>
@@ -36,16 +35,17 @@
 		script.println("</script>");
 	}
 	
-	blockChain blockDAO = new blockChain(userID, userPW);
-	blockDAO.start();
+	blockChain server = new blockChain(userID, userPW);
+	server.start();
 	String optionList[] = {"Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"};
-	Set<String> files = blockDAO.getList();		// all files
+	ArrayList<String> files = server.getList();		// all files
 	%>
 	<div class="container-fluid">
 	<div class="row mt-5">
 		<div class="col-sm-9">
 			<div class="row file">
-				<div class="lead">HTTP 클라이언트 접속 정보</div>
+				<div class="lead"><a href="logsView.jsp">HTTP 클라이언트 접속 정보</a></div>
+				<a href="logoutAction.jsp">logout</a>
 			</div>
 			<div class="row mt-2">
 				<div class="display-3">HTTP 클라이언트 접속 정보</div>
@@ -54,19 +54,19 @@
 		<div class="col-sm-3 shadow-sm bg-light rounded d-flex flex-column pt-2">
 			<div>
 				<span class="badge bg-success">101A</span>
-				<span>Server log is different</span>
+				<span>Secure blockchain</span>
 			</div>
 			<div>
 				<span class="badge bg-danger">101B</span>
-				<span>Blockchain log is different</span>
+				<span>Blockchain verification is failed</span>
 			</div>
 			<div>
 				<span class="badge bg-primary">102</span>
-				<span> Additional server log</span>
+				<span>Different from other blockchains</span>
 			</div>
 			<div>
 				<span class="badge bg-secondary">103</span>
-				<span> Additional blockchain log</span>
+				<span>No comparison objects</span>
 			</div>
 		</div>
 	</div>
@@ -77,9 +77,8 @@
 		<div class="col-sm-5">
 			 <select class="form-select formm-select-lg" id="select" aria-label="Default select example">
 			<%
-			Iterator<String> items = files.iterator();
-			for(int i = 0; items.hasNext(); i++)
-				out.println("<option value='"+i+"'>"+items.next()+"</option>");
+			for(int i = 0; i < files.size(); i++)
+				out.println("<option value='"+i+"'>"+files.get(i)+"</option>");
 			%>
 			</select>
 		</div>
@@ -153,24 +152,21 @@
 		                    $table.append("<tr></tr>");
 							$.each(jarrValue, function(jobKey, jobValue) {
 								$tr = $table.children('tr:eq('+(jarrKey+1)+')');
-								if (jobKey==1) {
-									$tr.addClass("table-success");
+								if (jobKey==0) {
+									//$tr.addClass("table-success");
 									$tr.append("<td><span class=\"badge bg-success\">101A</span></td>");
 								}
-								else if (jobKey==2) {
-									$tr.addClass("table-danger");
+								else if (jobKey==1) {
+									//$tr.addClass("table-danger");
 									$tr.append("<td><span class=\"badge bg-danger\">101B</span></td>");
 								}
-								else if (jobKey==3) {
-									$tr.addClass("table-primary");
+								else if (jobKey==2) {
+									//$tr.addClass("table-primary");
 									$tr.append("<td><span class=\"badge bg-primary\">102</span></td>");
 								}
-								else if (jobKey==4) {
-									$tr.addClass("table-secondary");
+								else if (jobKey==3) {
+									//$tr.addClass("table-secondary");
 									$tr.append("<td><span class=\"badge bg-secondary\">103</span></td>");
-								}
-								else {
-									$tr.append("<td>-</td>");
 								}
 								$.each(jobValue, function(i, v) {
 									$tr.append("<td>"+v+"</td>");

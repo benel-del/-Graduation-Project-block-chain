@@ -16,7 +16,7 @@ public class adminDAO {
 
 	public int connect(String userID, String userPW) {
 		try{	
-			Socket soc = new Socket("localhost", 6013);
+			Socket soc = new Socket("localhost", 6009);
 			
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());

@@ -20,11 +20,6 @@ import org.json.simple.JSONObject;
  */
 @WebServlet("/Log")
 public class Log extends HttpServlet {
-	
-	// block chain server start
-			blockChain bc = new blockChain(login.getUserID(), login.getUserPassword());
-			bc.start();
-			
 	static String[] option;
 	static JSONArray json = new JSONArray();
 	private static final long serialVersionUID = 1L;
@@ -48,7 +43,6 @@ public class Log extends HttpServlet {
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
-	@SuppressWarnings("unchecked")
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		// TODO Auto-generated method stub
@@ -56,39 +50,32 @@ public class Log extends HttpServlet {
 		response.setContentType("text/html; charset=utf-8");
 		String fileName = request.getParameter("file");
 		option = request.getParameterValues("option");
-
+		
+		HttpSession session = request.getSession(true);
+		String id = (String) session.getAttribute("userID");
+		String pw = (String) session.getAttribute("userPW");
 		try {
-			//ArrayList<String> content = allChain.get(getIndex(allName, fileName));
-			ArrayList<String> originalFile = blockDAO.readLogFile_client(fileName);
+			blockChain server = new blockChain(id, pw);
+			ArrayList<block> b = server.getChain(fileName);
 
-			String[] line = new String[2];
-			String[] splitServ = {""};
-			String[] splitBlock;
-			json = new JSONArray();
-			int k = 0;
-			for(int i = 0; i < content.size(); i++){
-				splitBlock = splitLog(content.get(i));
-				// splitServ �꽕�젙 (blockchain �겕湲곌� �뜑 �겢 �븣 ��鍮�)
-				if(k > originalFile.size()) {
-					addJson(splitBlock, "4");
+			if(b != null) {
+				String[] splitBlock;
+				json = new JSONArray();
+				for(int i = 1; i < b.size(); i++){
+					String str[] = b.get(i).getContent().split("\n");
+					String state = b.get(i).getState();
+					for(int j = 0; j < str.length; j++) {
+						splitBlock = splitLog(str[j]);
+						if (state.equals("Secure blockchain"))
+							addJson(splitBlock, "0");
+						else if(state.equals("Verification error"))
+							addJson(splitBlock, "1");
+						else if(state.equals("Different from other blockchains"))
+							addJson(splitBlock, "2");
+						else if(state.equals("No comparison objects"))
+							addJson(splitBlock, "3");
+					}
 				}
-				else {
-					splitServ = splitLog(originalFile.get(k++));
-				}
-
-				if (compareLog(splitServ, splitBlock, option)) {
-					addJson(splitServ, "0");
-				}
-
-				// blockchain怨� server log媛� �떎瑜� �븣
-				else {
-					addJson(splitServ, "1");
-					addJson(splitBlock, "2");
-				}
-			}
-			while ((line[0]=originalFile.get(k++))!=null) {
-				splitServ = splitLog(line[0]);
-				addJson(splitServ, "3");
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -106,16 +93,6 @@ public class Log extends HttpServlet {
 		result = log.split(" ");
 		return result;
 	}
-	
-    private boolean compareLog(String[] log1, String[] log2, String[] option) {
-        if (log1.length != log2.length)
-                return false;
-        for (int i=0; i<option.length; i++) {
-                if (!log1[Integer.parseInt(option[i])].equals(log2[Integer.parseInt(option[i])])) 
-                        return false;
-        }
-        return true;
-    }
     
     private void addJson(String[] splitLog, String code) {
     	JSONArray temp = new JSONArray();
@@ -126,14 +103,5 @@ public class Log extends HttpServlet {
     	temp2.put(code, temp);
     	json.add(temp2);
     }
-    
-    private int getIndex(ArrayList<String> files, String name) {
-		for(int i = 0; i < files.size(); i++) {
-			if(files.get(i).equals(name)) {
-				return i;
-			}
-		}
-		return -1;
-	}
 
 }

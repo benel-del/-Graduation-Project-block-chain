@@ -133,7 +133,7 @@ public class blockChainServer {
 		
 		ServerSocket server;
 		try {
-			server = new ServerSocket(6013);
+			server = new ServerSocket(6009);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
@@ -147,7 +147,7 @@ public class blockChainServer {
 
 	static private int insertFile(String file) {
 		// file: 2O 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
-		System.out.println(getTime() + "INSERT INTO LOG - " + file);
+		System.out.println(getTime() + "CREATE NEW TABLE - " + file);
 		String[] str = file.split(" ");
 		String[] str2 = str[3].split("/");
 		String sql = "INSERT INTO LOG(f_name, real_name, location, last_update_time) VALUES(?, ?, ?, ?);";
@@ -225,8 +225,10 @@ public class blockChainServer {
 			for(int i = start + 1; i < line.size(); i++) {
 				tmp += line.get(i) + "\n";
 			}
-			insertLog(name, tmp);
-			setLastLine(name, line.size());
+			if(!tmp.equals("")) {
+				insertLog(name, tmp);
+				setLastLine(name, line.size()-1);
+			}
 		}
 	}
 	
@@ -248,7 +250,7 @@ public class blockChainServer {
 	}
 	
 	static private int insertLog(String file, String content) {
-		System.out.println(getTime() + "INSERT INTO log_2021... - " + file);
+		System.out.println(getTime() + "INSERT new log data INTO " + file);
 		String sql = "INSERT INTO " + file + "(content) VALUES(?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -290,7 +292,7 @@ public class blockChainServer {
 	
 	static private ArrayList<String> getFilesList(){
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/files.txt";
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/files.txt";
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -310,7 +312,7 @@ public class blockChainServer {
 	
 	static private ArrayList<String> getUpdateList(){
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/update.txt";
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/update.txt";
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
