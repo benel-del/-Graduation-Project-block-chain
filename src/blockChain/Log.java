@@ -65,7 +65,7 @@ public class Log extends HttpServlet {
 					String str[] = b.get(i).getContent().split("\n");
 					String state = b.get(i).getState();
 					for(int j = 0; j < str.length; j++) {
-						splitBlock = splitLog(str[j]);
+						splitBlock = str[j].split("\\|");
 						if (state.equals("Secure blockchain"))
 							addJson(splitBlock, "0");
 						else if(state.equals("Verification error"))
@@ -87,14 +87,9 @@ public class Log extends HttpServlet {
 		//String j = json.toJSONString();
 		//System.out.println(j);
 	}
-	
-	private String[] splitLog(String log) {
-		String[] result = new String[3];
-		result = log.split(" ");
-		return result;
-	}
-    
-    private void addJson(String[] splitLog, String code) {
+
+	@SuppressWarnings("unchecked")
+	private void addJson(String[] splitLog, String code) {
     	JSONArray temp = new JSONArray();
     	JSONObject temp2 = new JSONObject();
     	for (int i=0; i<option.length; i++) {

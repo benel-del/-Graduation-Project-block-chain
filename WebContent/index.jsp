@@ -149,7 +149,7 @@ file.FileDAO f = new file.FileDAO();
 		function actionFile(){
 			document.getElementById("action").disabled = 'disabled';
 			
-			document.getElementById('stateDownload').value = "File name: <%=nfile%>, file size: <%=file1.getResultFileSize()%>";
+			document.getElementById('stateDownload').value = "File: <%=nfile%>, size: <%=file1.getResultFileSize()%>";
 			for(var i = 0; i < download.length; i++)
 				download.item(i).disabled = false;
 			<%
@@ -188,11 +188,11 @@ file.FileDAO f = new file.FileDAO();
 			}
 			else{
 				if(validFileType(file)){
-					document.getElementById('state').value = "File name: " + file.name + ", file size: " + returnFileSize(file.size);
+					document.getElementById('state').value = "File: " + file.name + ", size: " + returnFileSize(file.size);
 					isFile = true;
 				}
 				else{
-					document.getElementById('state').value = "File name: " + file.name + ": Not a valid file type. Update your selection.";
+					document.getElementById('state').value = "File: " + file.name + ": Not a valid file type..";
 					isFile = false;
 				}
 			}

@@ -31,7 +31,7 @@
 		else{
 			PrintWriter script = response.getWriter();
 			script.println("<script>");
-			script.println("history.back()");
+			script.println("location.href = 'admin.jsp'");
 			script.println("</script>");
 		}
 		
@@ -44,8 +44,7 @@
 	<div class="row mt-5">
 		<div class="col-sm-9">
 			<div class="row file">
-				<div class="lead"><a href="logsView.jsp">HTTP 클라이언트 접속 정보</a></div>
-				<a href="logout.jsp">logout</a>
+				<div class="lead"><a href="logsView.jsp">HTTP 클라이언트 접속 정보</a>&nbsp;&nbsp;&nbsp;<a href="logout.jsp">logout</a></div>
 			</div>
 			<div class="row mt-2">
 				<div class="display-3">HTTP 클라이언트 접속 정보</div>

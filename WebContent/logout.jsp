@@ -3,13 +3,6 @@
 <%@ page import="java.io.PrintWriter" %>
 
 <%
-	if(session.getAttribute("userID") == null){
-		PrintWriter script = response.getWriter();
-		script.println("<script>");
-		script.println("history.back()");
-		script.println("</script>");
-	}
-	
 	session.invalidate();
 		
 	PrintWriter script = response.getWriter();

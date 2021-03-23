@@ -30,11 +30,11 @@ public class UserServer extends Thread {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		getKey();
 		first();
 	}
 
 	public void run() {	// called when logined
-		getKey();
 		try {
 			getCenterFileList();	// center filename list
 
@@ -90,11 +90,41 @@ public class UserServer extends Thread {
 				chain.add(new ArrayList<block>());
 				chain.get(chain.size()-1).add(new block("START", rs.getString(1) + "\n"));	// genesis block
 				localfile.add(rs.getString(1));
-				sql = "SELECT sign, content, state FROM " + rs.getString(1) + ";";
+				
+				String file = rs.getString(1);
+				ArrayList<block> other = getOtherChain(file, 1);
+				sql = "SELECT sign, content, state FROM " + file + ";";
 				pstmt = conn.prepareStatement(sql);
 				ResultSet rsrs = pstmt.executeQuery();
 				while(rsrs.next()) {
-					chain.get(chain.size()-1).add(new block(rsrs.getString(1), rsrs.getString(2), rsrs.getString(3)));
+					System.out.println("fecthChain - BlockChain verification check");
+					String state = "Secure blockchain";
+					int dec = Integer.parseInt(rsa.decrypt(rsrs.getString(1), rsa.getPublicKey()));
+					int hash = (chain.get(chain.size()-1).get(chain.get(chain.size()-1).size()-1).getSign() + chain.get(chain.size()-1).get(chain.get(chain.size()-1).size()-1).getContent()).hashCode();
+					if(dec != hash){ // error
+						state = "Verification error";
+					}
+					else if(other != null) {	// other block chain compare
+						if(chain.get(chain.size()-1).size()-1 < other.size()) {
+							if(!other.get(chain.get(chain.size()-1).size()-1).getState().equals("Verification error")) {
+								if(!other.get(chain.get(chain.size()-1).size()-1).getContent().equals(rsrs.getString(2)))
+									state = "Different from other blockchains";
+							}
+						}
+						else
+							state = "No comparison objects";
+					}
+					else if(other == null)
+						state = "No comparison objects";
+					
+					if(!rsrs.getString(3).equals(state)) {
+						sql = "UPDATE " + file + " SET state=? WHERE no=?;";
+						pstmt = conn.prepareStatement(sql);
+						pstmt.setString(1, state);
+						pstmt.setInt(2, chain.get(chain.size()-1).size());
+						pstmt.executeUpdate();
+					}
+					chain.get(chain.size()-1).add(new block(rsrs.getString(1), rsrs.getString(2), state));
 				}
 			}
 		} catch (Exception ex) {
@@ -182,7 +212,7 @@ public class UserServer extends Thread {
 				}
 				sql = "UPDATE BlockChain SET block_size=? WHERE f_name = ?";
 				pstmt = conn.prepareStatement(sql);
-				pstmt.setInt(1, b.size());
+				pstmt.setInt(1, b.size()-1);
 				pstmt.setString(2, file);
 				pstmt.executeUpdate();
 			}
@@ -191,7 +221,7 @@ public class UserServer extends Thread {
 			ex.printStackTrace();
 		}
 	}
-	
+
 	private String sign(int index) throws Exception {
 		int size = chain.get(index).size();
 		block b = chain.get(index).get(size-1);
@@ -213,6 +243,7 @@ public class UserServer extends Thread {
 				while(rs.next()) {
 					b.add(new block("", rs.getString(1), rs.getString(2)));
 				}
+				return b;
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
