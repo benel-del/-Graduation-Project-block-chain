@@ -257,4 +257,19 @@ public class UserServer extends Thread {
 			return null;
 		return chain.get(index);
 	}
+	public ArrayList<String> getLog(String file){
+		int index = getIndex(file);
+		if(index == -1)
+			return null;
+		ArrayList<block> b = chain.get(index);
+		ArrayList<String> log = new ArrayList<>();
+		for(int i = 1; i < b.size(); i++) {
+			if(!b.get(i).getState().equals("Verification error")) {
+				String[] str = b.get(i).getContent().split("\n");
+				for(int j = 0; j < str.length; j++) 
+					log.add(str[j]);
+			}
+		}
+		return log;
+	}
 }
