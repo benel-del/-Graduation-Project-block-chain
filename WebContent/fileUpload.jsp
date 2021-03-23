@@ -75,7 +75,7 @@
 				f.insert(fileName, newName, pw, f.fileSize(fileSize), f.fileSize(resultFile.length()), option);
 				
 				script.println("<script>");
-				script.println("location.href = 'index.jsp?file=" + URLEncoder.encode(fileName, "UTF-8") + "'");
+				script.println("location.href = 'index.jsp?file=" + URLEncoder.encode(fileName, "UTF-8") + "&option=" + option + "'");
 				script.println("</script>");
 			}
 		}
