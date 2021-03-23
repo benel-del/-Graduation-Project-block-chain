@@ -24,90 +24,59 @@
 <body>
 <div class="container-fluid">
 <div class="row mt-5">
-<div class="col-sm-3">
-	<div class="row file">
-			<div class="lead"><a href="logView.jsp">HTTP 클라이언트 접속 정보</a></div>
-			<div class="lead"><a href="logoutAction.jsp">logout</a></div>
+	<div class="col-sm-3">
+		<div class="row file">
+				<div class="lead"><a href="logView.jsp">HTTP 클라이언트 접속 정보</a></div>
+				<div class="lead"><a href="logoutAction.jsp">logout</a></div>
+		</div>
 	</div>
 </div>
-<div class="col-sm-6"><canvas id="myChart"></canvas></div>
+<div class="row mt-5">
+	<div class="col-sm-5"><canvas id="pconn"></canvas></div>
+	<div class="col-sm-1 dropdown">
+		<button type="button" class="btn btn-secondary" id="p">day</button>
+	</div>
+	<div class="col-sm-5"><canvas id="wconn"></canvas></div>	
 </div>
 </div>
-<%
-class RemoteIP {
-	private String date;
-	private int count;
-	
-	RemoteIP(String date, int count) {
-		this.date = date;
-		this.count = count;
-	}
-	public String getDate() {
-		return date;
-	}
-	public int getCount() {
-		return count;
-	}
-}
-
-String s;
-String[] temp = new String[2];
-BufferedReader in = new BufferedReader(new FileReader("/usr/local/apache-tomcat-9.0.41/webapps/block/remoteIP.txt"));
-ArrayList<RemoteIP> datelist = new ArrayList<RemoteIP>();
-while ((s = in.readLine())!=null) {
-	temp = s.split(" ");
-	datelist.add(new RemoteIP(temp[0], Integer.parseInt(temp[1])));
-}
-int listSize = datelist.size();
-%>
 <script>
-var ctx = document.getElementById('myChart').getContext('2d');
-var chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [
-			<%
-			if (datelist.size() > 4) {
-				int i = 5;
-				while (--i>=0)
-					out.print(datelist.get(listSize-i).getDate());
-			}
-			else {
-				int i = listSize;
-				while (--i>=0)
-					out.print(datelist.get(i).getDate());
-			}
-			%>
-        ],
-        datasets: [{
-            label: '# of Connection',
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: [
-    			<%
-    			if (datelist.size() > 4) {
-    				int i = 5;
-    				while (--i>=0) {
-    					out.print(datelist.get(listSize-i).getCount());
-    					if (i>0) out.println(", ");
-    				}
-    				
-    			}
-    			else {
-    				int i = listSize;
-    				while (--i>=0) {
-    					out.print(datelist.get(i).getCount());
-						if (i>0) out.println(", ");
-    				}
-    			}
-    			%>
-            	]
-        }]
-    },
-
-    // Configuration options go here
-    options: {}
-});
+$(function() {
+	const PCONN = $("#pconn");
+	$('#p').on('click', function() {
+		$.ajax({
+            url: "<%=request.getContextPath()%>/LogsView",
+			method: "POST",
+			data: {chart:"day"},
+			dataType: "json"
+		})
+		// HTTP 요청이 성공하면 요청한 데이터가 done() 메소드로 전달됨.
+        .done(function(json) {
+        	alert("ASDF");
+        	/* var lineChart = new Chart(PCONN, {
+        	   type: 'line',
+        	   data: {
+        	      labels: Object.keys(json),
+        	      datasets: [{
+        	         label: 'My first dataset',
+        	         fill: false,
+        	         lineTension: 0,
+        	         backgroundColor: "rgba(75,192,192,0.4)",
+        	         borderColor: "rgba(75,192,192,1)",
+        	         borderCapStyle: 'butt',
+        	         borderDash: [],
+        	         borderDashOffset: 0.0,
+        	         borderJointStyle: 'miter',
+        	         data: Object.values(json)
+        	      }]
+        	   }
+        	}) */
+        })
+		// HTTP 요청이 실패하면 오류와 상태에 관한 정보가 fail() 메소드로 전달됨.
+        .fail(function(xhr, status, errorThrown) {
+            alert("오류가 발생했습니다.");
+        })
+    })
+})
 </script>
 </body>
 </html>
