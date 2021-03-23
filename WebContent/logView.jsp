@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page import="java.io.File" %>
-<%@ page import="blockChain.blockChain" %>
+<%@ page import="blockChain.UserServer" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.io.PrintWriter" %>
 <!DOCTYPE html>
@@ -23,29 +23,29 @@
 <body>
 	<%
 	String userID = null;
-	String userPW = null;
-	if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
-		userID = (String) session.getAttribute("userID");
-		userPW = (String) session.getAttribute("userPW");
-	}
-	else{
-		PrintWriter script = response.getWriter();
-		script.println("<script>");
-		script.println("history.back()");
-		script.println("</script>");
-	}
-	
-	blockChain server = new blockChain(userID, userPW);
-	server.start();
-	String optionList[] = {"Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"};
-	ArrayList<String> files = server.getList();		// all files
+		String userPW = null;
+		if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
+			userID = (String) session.getAttribute("userID");
+			userPW = (String) session.getAttribute("userPW");
+		}
+		else{
+			PrintWriter script = response.getWriter();
+			script.println("<script>");
+			script.println("history.back()");
+			script.println("</script>");
+		}
+		
+		blockChain.UserServer server = new blockChain.UserServer(userID, userPW);
+		server.start();
+		String optionList[] = {"Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"};
+		ArrayList<String> files = server.getList();		// all files
 	%>
 	<div class="container-fluid">
 	<div class="row mt-5">
 		<div class="col-sm-9">
 			<div class="row file">
 				<div class="lead"><a href="logsView.jsp">HTTP 클라이언트 접속 정보</a></div>
-				<a href="logoutAction.jsp">logout</a>
+				<a href="logout.jsp">logout</a>
 			</div>
 			<div class="row mt-2">
 				<div class="display-3">HTTP 클라이언트 접속 정보</div>
@@ -53,19 +53,19 @@
 		</div>
 		<div class="col-sm-3 shadow-sm bg-light rounded d-flex flex-column pt-2">
 			<div>
-				<span class="badge bg-success">101A</span>
+				<span class="badge bg-success">101</span>
 				<span>Secure blockchain</span>
 			</div>
 			<div>
-				<span class="badge bg-danger">101B</span>
+				<span class="badge bg-danger">102</span>
 				<span>Blockchain verification is failed</span>
 			</div>
 			<div>
-				<span class="badge bg-primary">102</span>
+				<span class="badge bg-primary">103</span>
 				<span>Different from other blockchains</span>
 			</div>
 			<div>
-				<span class="badge bg-secondary">103</span>
+				<span class="badge bg-secondary">104</span>
 				<span>No comparison objects</span>
 			</div>
 		</div>
@@ -154,19 +154,19 @@
 								$tr = $table.children('tr:eq('+(jarrKey+1)+')');
 								if (jobKey==0) {
 									//$tr.addClass("table-success");
-									$tr.append("<td><span class=\"badge bg-success\">101A</span></td>");
+									$tr.append("<td><span class=\"badge bg-success\">101</span></td>");
 								}
 								else if (jobKey==1) {
 									//$tr.addClass("table-danger");
-									$tr.append("<td><span class=\"badge bg-danger\">101B</span></td>");
+									$tr.append("<td><span class=\"badge bg-danger\">102</span></td>");
 								}
 								else if (jobKey==2) {
 									//$tr.addClass("table-primary");
-									$tr.append("<td><span class=\"badge bg-primary\">102</span></td>");
+									$tr.append("<td><span class=\"badge bg-primary\">103</span></td>");
 								}
 								else if (jobKey==3) {
 									//$tr.addClass("table-secondary");
-									$tr.append("<td><span class=\"badge bg-secondary\">103</span></td>");
+									$tr.append("<td><span class=\"badge bg-secondary\">104</span></td>");
 								}
 								$.each(jobValue, function(i, v) {
 									$tr.append("<td>"+v+"</td>");

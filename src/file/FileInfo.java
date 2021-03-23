@@ -1,6 +1,6 @@
 package file;
 
-public class file {
+public class FileInfo {
 	String originalName;
 	String resultName;
 	String password;

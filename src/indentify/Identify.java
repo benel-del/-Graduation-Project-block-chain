@@ -1,6 +1,6 @@
-package security;
+package indentify;
 
-public class login {
+public class Identify {
 	public String userID = "";
 	public String userPassword = "";
 	

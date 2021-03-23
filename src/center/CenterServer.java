@@ -87,7 +87,7 @@ class Sockets extends Thread {
     }
 }
 
-public class blockChainServer {
+public class CenterServer {
 	static private Connection conn;
 	static private Set<String> files = new HashSet<>();
 	

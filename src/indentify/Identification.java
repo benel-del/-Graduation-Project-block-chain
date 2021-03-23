@@ -1,4 +1,4 @@
-package security;
+package indentify;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -9,50 +9,49 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-
-public class adminDAO {
+public class Identification {
 	private Connection conn;
 	private ResultSet rs;
 
 	public int connect(String userID, String userPW) {
-		try{	
+		try {
 			Socket soc = new Socket("localhost", 6009);
-			
+
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
-			
+
 			System.out.println(" Accept to Server Success...");
 			pw.println(userID);
 			pw.println(userPW);
 			pw.flush();
-			
+
 			int result = -1;
-			if(br.readLine().equals("complete"))
+			if (br.readLine().equals("complete"))
 				result = 1;
 			soc.close();
 			return result;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return -2;
 	}
-	
-	public int isUser(String userID) {		
+
+	public int isUser(String userID) {
 		String sql = "SELECT userID FROM VIEW_USER WHERE userID = ?;";
 		try {
 			String dbURL = "jdbc:mysql://localhost:3306/center?";
-			Class.forName("com.mysql.cj.jdbc.Driver");	
+			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn = DriverManager.getConnection(dbURL, "root", "Benel&Bende1");
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, userID);
 			rs = pstmt.executeQuery();
-			if(rs.next()) {
+			if (rs.next()) {
 				return 1;
 			}
 			return -1;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		return -2;	// db error
+		return -2; // db error
 	}
 }

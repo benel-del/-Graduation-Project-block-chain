@@ -55,7 +55,7 @@ public class Log extends HttpServlet {
 		String id = (String) session.getAttribute("userID");
 		String pw = (String) session.getAttribute("userPW");
 		try {
-			blockChain server = new blockChain(id, pw);
+			UserServer server = new UserServer(id, pw);
 			ArrayList<block> b = server.getChain(fileName);
 
 			if(b != null) {

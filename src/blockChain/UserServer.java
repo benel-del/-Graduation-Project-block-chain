@@ -7,9 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import security.RSA;
+import crypto.RSA;
 
-public class blockChain extends Thread {
+public class UserServer extends Thread {
 	private Connection conn;
 	private ResultSet rs;
 	private String userID;
@@ -20,7 +20,7 @@ public class blockChain extends Thread {
 	private ArrayList<String> centerfile = new ArrayList<>();
 	private ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
 	
-	public blockChain(String userID, String userPW){
+	public UserServer(String userID, String userPW){
 		this.userID = userID;
 		String dbURL = "jdbc:mysql://localhost:3306/" + userID + "?";
 		try {

@@ -1,9 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.net.URLDecoder"%>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="security.AES" %>
-<%@ page import="file.file" %>
-<%@ page import="file.fileDAO" %>
+<%@ page import="crypto.AES" %>
+<%@ page import="file.FileInfo" %>
+<%@ page import="file.FileDAO" %>
 <%@ page import="java.io.File" %>
 
 <!DOCTYPE html>
@@ -22,8 +22,8 @@
 </style>
 </head>
 <%
-	fileDAO f = new fileDAO();
-	file file1 = null;
+file.FileDAO f = new file.FileDAO();
+	file.FileInfo file1 = null;
 	String file = "";
 	String option = "";
 	boolean upload = false;

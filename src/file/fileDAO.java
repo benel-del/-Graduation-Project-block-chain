@@ -11,11 +11,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-public class fileDAO {
+public class FileDAO {
 	protected Connection conn;
 	protected ResultSet rs;
 	
-	public fileDAO(){
+	public FileDAO(){
 		try {
 			String dbURL = "jdbc:mysql://localhost:3306/file?";
 			String dbID = "root";
@@ -45,14 +45,14 @@ public class fileDAO {
 		return -1;	// db error
 	}
 	
-	public file getFileInfo(String name) {
+	public FileInfo getFileInfo(String name) {
 		String sql = "SELECT * FROM file WHERE originalName = ? ORDER BY no DESC;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, name);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
-				file f = new file();
+				FileInfo f = new FileInfo();
 				f.setOriginalName(rs.getString(2));
 				f.setResultName(rs.getString(3));
 				f.setPassword(rs.getString(4));

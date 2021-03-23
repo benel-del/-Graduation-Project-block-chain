@@ -1,4 +1,4 @@
-package security;
+package crypto;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
