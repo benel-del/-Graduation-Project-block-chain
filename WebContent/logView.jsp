@@ -22,7 +22,7 @@
 </head>
 <body>
 	<%
-	String userID = null;
+		String userID = null;
 		String userPW = null;
 		if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
 			userID = (String) session.getAttribute("userID");

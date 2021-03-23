@@ -26,8 +26,8 @@ create view VIEW_LOG as select f_name from LOG;
 insert into center.USER(userID, userPW) values("user1", "Admin1!");
 insert into center.USER(userID, userPW) values("user2", "Admin2!");
 
-GRANT create, select, insert, update, grant option ON user1.* TO user1@localhost;
-GRANT create, select, insert, update, grant option ON user2.* TO user2@localhost;
+GRANT create, select, insert, update, delete, drop, grant option ON user1.* TO user1@localhost;
+GRANT create, select, insert, update, delete, drop, grant option ON user2.* TO user2@localhost;
 GRANT select ON center.VIEW_LOG TO user1@localhost;
 GRANT select ON center.VIEW_LOG TO user2@localhost;
 GRANT select ON center.VIEW_USER TO user1@localhost;

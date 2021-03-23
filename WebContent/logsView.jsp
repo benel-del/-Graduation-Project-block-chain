@@ -2,6 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ page import= "java.io.File" %>
 <%@ page import="java.io.FileReader" %>
+<%@ page import="java.io.PrintWriter" %>
 <%@ page import="java.io.BufferedReader" %>
 <%@ page import="java.util.ArrayList" %>
 <!DOCTYPE html>
@@ -22,12 +23,28 @@
 	<title>Log Analysis</title>
 </head>
 <body>
+<%
+	String userID = null;
+	String userPW = null;
+	if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
+		userID = (String) session.getAttribute("userID");
+		userPW = (String) session.getAttribute("userPW");
+		blockChain.UserServer server = new blockChain.UserServer(userID, userPW);
+		server.start();
+	}
+	else{
+		PrintWriter script = response.getWriter();
+		script.println("<script>");
+		script.println("location.href = 'admin.jsp'");
+		script.println("</script>");
+	}
+%>
 <div class="container-fluid">
 <div class="row mt-5">
 	<div class="col-sm-3">
 		<div class="row file">
 				<div class="lead"><a href="logView.jsp">HTTP 클라이언트 접속 정보</a></div>
-				<div class="lead"><a href="logoutAction.jsp">logout</a></div>
+				<div class="lead"><a href="logout.jsp">logout</a></div>
 		</div>
 	</div>
 </div>
@@ -51,8 +68,7 @@ $(function() {
 		})
 		// HTTP 요청이 성공하면 요청한 데이터가 done() 메소드로 전달됨.
         .done(function(json) {
-        	alert("ASDF");
-        	/* var lineChart = new Chart(PCONN, {
+        	var lineChart = new Chart(PCONN, {
         	   type: 'line',
         	   data: {
         	      labels: Object.keys(json),
@@ -69,7 +85,7 @@ $(function() {
         	         data: Object.values(json)
         	      }]
         	   }
-        	}) */
+        	})
         })
 		// HTTP 요청이 실패하면 오류와 상태에 관한 정보가 fail() 메소드로 전달됨.
         .fail(function(xhr, status, errorThrown) {

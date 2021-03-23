@@ -36,8 +36,13 @@ public class UserServer extends Thread {
 
 	public void run() {	// called when logined
 		try {
-			getCenterFileList();	// center filename list
+			centerfile = getCenterFileList();	// center filename list
 
+			for(String local : localfile) {
+				if(!centerfile.contains(local)) {
+					deleteTable(local);
+				}
+			}
 			for(String center : centerfile) {
 				if(!localfile.contains(center)) {
 					createTable(center);
@@ -75,6 +80,28 @@ public class UserServer extends Thread {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.executeUpdate();
 			
+			System.out.println("createTable " + file);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void deleteTable(String file) {
+		int index = getIndex(file);
+		localfile.remove(index);
+		
+		try {
+			String sql = "DELETE FROM BlockChain WHERE f_name = ?;";
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, file);
+			pstmt.executeUpdate();
+			
+			sql = "DROP TABLE " + file +";";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.executeUpdate();
+
+			System.out.println("deleteTable " + file);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -132,18 +159,19 @@ public class UserServer extends Thread {
 		}
 	}
 	
-	private void getCenterFileList() {
+	private ArrayList<String> getCenterFileList() {
+		ArrayList<String> file = new ArrayList<>();
 		String sql = "SELECT f_name FROM center.VIEW_LOG;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
 			while(rs.next()) {
-				if(!centerfile.contains(rs.getString(1)))
-					centerfile.add(rs.getString(1));
+				file.add(rs.getString(1));
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		return file;
 	}
 
 	private String getOtherUser(){	// user number limitied 2

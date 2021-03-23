@@ -66,16 +66,17 @@ public class LogsView extends HttpServlet {
 		out.print(json);
 	}
 
+	@SuppressWarnings("unchecked")
 	private JSONObject countConn (UserServer server) {
 		ArrayList<String> filelist = server.getList();
-		HashSet<String> hs = new HashSet<String>();
 		String[] temp;
 		JSONObject jsObj = new JSONObject();
 		int day = (filelist.size()>6) ? 7 : filelist.size();
 		for (int i=day; i>0; i--) { // one day
+			HashSet<String> hs = new HashSet<String>();
 			ArrayList<String> f = server.getLog(filelist.get(filelist.size()-i));
 			for (int j=0; j<f.size(); j++) {
-				temp = f.get(j).split("|");
+				temp = f.get(j).split("\\|");
 				hs.add(temp[0]);
 			}
 			jsObj.put(filelist.get(filelist.size()-i), hs.size());
