@@ -23,8 +23,11 @@
 </head>
 <%
 	String[] name = {"originalFile", "originalSize", "newFile", "newSize", "option"};
-	for(int i = 0; i < name.length; i++)
-		session.setAttribute(name[i], "null");
+	if(session.getAttribute("exit") != null){
+		for(int i = 0; i < name.length; i++)
+			session.removeAttribute(name[i]);
+		session.removeAttribute("exit");
+	}
 	String[] value = new String[5];
 	FileDAO f = new FileDAO();
 %>
@@ -143,29 +146,24 @@
             			<%
             			}
             			%>
+            			document.getElementById('stateDownload').value = "File: <%=value[2]%>, size: <%=value[3]%>";
+            			for(var i = 0; i < download.length; i++)
+            				download.item(i).disabled = false;
+            			<%
+            			index = 0;
+            			Line = f.read(value[2]);
+            			while(Line.size() > index) {
+            				tmp = Line.get(index++);
+            			%>
+            				document.getElementById('result').value += "<%=tmp.replaceAll("\\\\", "/").replaceAll("\"", "\'")%>\n";
+            			<%
+            			}
+            			%>
                 	}
                 }
 	        }).submit();
 		});
-		
-		$('#action').on('click', function() {
-			document.getElementById("action").disabled = 'disabled';
-			
-			document.getElementById('stateDownload').value = "File: <%=value[2]%>, size: <%=value[3]%>";
-			for(var i = 0; i < download.length; i++)
-				download.item(i).disabled = false;
-			<%
-			index = 0;
-			Line = f.read(value[2]);
-			while(Line.size() > index) {
-				tmp = Line.get(index++);
-			%>
-				document.getElementById('result').value += "<%=tmp.replaceAll("\\\\", "/").replaceAll("\"", "\'")%>\n";
-			<%
-			}
-			%>
-		});
-		
+
 		$('#download').on('click', function() {
 	    	$("#form").ajax({
 				url: "<%=request.getContextPath()%>/fileDownload",
@@ -179,7 +177,7 @@
                 	
                 }
 	        }).submit();
-		})
+		});
 	});
 
 	<%

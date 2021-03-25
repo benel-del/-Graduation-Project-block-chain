@@ -2,12 +2,8 @@ package crypto;
 
 import java.security.Key;
 import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
@@ -70,17 +66,4 @@ public class RSA {
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodedKey);
         return keyFactory.generatePrivate(keySpec);
     }
-	
-	public void setKey() throws NoSuchAlgorithmException, InvalidKeySpecException{
-		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-		keyPairGenerator.initialize(2048);
-		KeyPair keyPair = keyPairGenerator.genKeyPair();
-		this.publicKey = keyPair.getPublic();
-		this.privateKey = keyPair.getPrivate();
-	}
-	
-	public String KeyToStr(Key key) {
-		Encoder encoder = Base64.getEncoder();
-		return new String(encoder.encode(key.getEncoded()));
-	}
 }

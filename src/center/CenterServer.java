@@ -327,7 +327,7 @@ public class CenterServer {
 			BufferedReader bufReader = new BufferedReader(fileReader);
 			String line = "";
 			while((line = bufReader.readLine()) != null) {
-				if(line.contains("/block/index.jsp") || line.contains("/block/fileUpload.jsp") || line.contains("/block/fileDownload.jsp"))
+				if(line.contains("/block/index.jsp") || line.contains("/block/fileUpload") || line.contains("/block/fileDownload"))
 					Line.add(line);
 			}
 			bufReader.close();

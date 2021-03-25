@@ -12,6 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 @WebServlet("/fileDownload")
 public class FileDownload extends HttpServlet {
@@ -59,7 +60,9 @@ public class FileDownload extends HttpServlet {
 			out2.flush();
 			out2.close();
 			in.close();	
-						
+			
+			HttpSession session = request.getSession(true);
+			session.setAttribute("exit", 1);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

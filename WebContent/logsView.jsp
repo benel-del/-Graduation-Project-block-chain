@@ -3,6 +3,7 @@
 <%@ page import= "java.io.File" %>
 <%@ page import="java.io.FileReader" %>
 <%@ page import="java.io.PrintWriter" %>
+<%@ page import="blockChain.UserServer" %>
 <%@ page import="java.io.BufferedReader" %>
 <%@ page import="java.util.ArrayList" %>
 <!DOCTYPE html>
@@ -29,8 +30,8 @@
 	if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
 		userID = (String) session.getAttribute("userID");
 		userPW = (String) session.getAttribute("userPW");
-		blockChain.UserServer server = new blockChain.UserServer(userID, userPW);
-		server.start();
+		UserServer server = new UserServer(userID, userPW);
+		server.strt();
 	}
 	else{
 		PrintWriter script = response.getWriter();
