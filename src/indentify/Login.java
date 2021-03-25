@@ -1,6 +1,7 @@
 package indentify;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -9,10 +10,54 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public class Identification {
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+@WebServlet("/login")
+public class Login extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 	private Connection conn;
 	private ResultSet rs;
 
+	public Login() {
+	        super();
+    }
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doPost(request, response);
+	}
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
+		request.setCharacterEncoding("UTF-8");
+		response.setContentType("text/html; charset=utf-8");
+		String id = request.getParameter("id");
+		String pw = request.getParameter("pw");
+
+		try {
+			PrintWriter out = response.getWriter();
+			if(isUser(id) == 1) {
+				if(connect(id, pw) == 1) {
+					HttpSession session = request.getSession(true);
+					session.setAttribute("userID", id);
+					session.setAttribute("userPW", pw);
+				}
+				else
+					out.print("loginFail");
+			}
+			else
+				out.print("NoID");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public int connect(String userID, String userPW) {
 		try {
 			Socket soc = new Socket("localhost", 6009);
