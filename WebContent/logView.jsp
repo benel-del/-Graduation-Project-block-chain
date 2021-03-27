@@ -35,10 +35,14 @@
 			script.println("</script>");
 		}
 		
-		UserServer server = new UserServer(userID, userPW);
-		server.strt();
+		ArrayList<String> files = new ArrayList<>();
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID + "File";
+		String[] fileNameOfPath = new File(path).list();
+		for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
+			files.add(fileNameOfPath[i]);
+		}
 		String optionList[] = {"Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"};
-		ArrayList<String> files = server.getList();		// all files
+		
 	%>
 	<div class="container-fluid">
 	<div class="row mt-5">
@@ -61,11 +65,11 @@
 			</div>
 			<div>
 				<span class="badge bg-primary">103</span>
-				<span>Different from other blockchains</span>
+				<span>Server blockchain is longer</span>
 			</div>
 			<div>
 				<span class="badge bg-secondary">104</span>
-				<span>No comparison objects</span>
+				<span>Server blockchain is shorter</span>
 			</div>
 		</div>
 	</div>
@@ -76,7 +80,7 @@
 		<div class="col-sm-5">
 			 <select class="form-select formm-select-lg" id="select" aria-label="Default select example">
 			<%
-			for(int i = 0; i < files.size(); i++)
+			for(int i = 0; files != null && i < files.size(); i++)
 				out.println("<option value='"+i+"'>"+files.get(i)+"</option>");
 			%>
 			</select>
@@ -127,56 +131,56 @@
 			})
 			
 		    $('#submit').on('click', function() {
-		            var optionChecked = [];
-		            $('input:checkbox[name=option]:checked').each(function() {
-		                    optionChecked.push($(this).val());
-		            })
-		            $table.empty();
-		            $.ajax({
-		                    url: "<%=request.getContextPath()%>/Log",
-		                    traditional:true,
-		                    method: "POST",
-		                    data: {
-		                            file:$('#select option:selected').text(),
-		                            option:optionChecked
-		                            },
-		                    dataType:"json"
-		            })
-		            .done(function(json) {
-						$table.append("<tr><td>Status</td></tr>");
-						$.each(optionChecked, function(i, v) {
-								$table.children('tr:eq(0)').append('<td>'+optionList[v]+'</td>');
-						})
-	                    $.each(json, function(jarrKey, jarrValue){
-		                    $table.append("<tr></tr>");
-							$.each(jarrValue, function(jobKey, jobValue) {
-								$tr = $table.children('tr:eq('+(jarrKey+1)+')');
-								if (jobKey==0) {
-									//$tr.addClass("table-success");
-									$tr.append("<td><span class=\"badge bg-success\">101</span></td>");
-								}
-								else if (jobKey==1) {
-									//$tr.addClass("table-danger");
-									$tr.append("<td><span class=\"badge bg-danger\">102</span></td>");
-								}
-								else if (jobKey==2) {
-									//$tr.addClass("table-primary");
-									$tr.append("<td><span class=\"badge bg-primary\">103</span></td>");
-								}
-								else if (jobKey==3) {
-									//$tr.addClass("table-secondary");
-									$tr.append("<td><span class=\"badge bg-secondary\">104</span></td>");
-								}
-								$.each(jobValue, function(i, v) {
-									$tr.append("<td>"+v+"</td>");
-								})
-							})
-						});
+	            var optionChecked = [];
+	            $('input:checkbox[name=option]:checked').each(function() {
+	                    optionChecked.push($(this).val());
+	            })
+	            $table.empty();
+	            $.ajax({
+	                    url: "<%=request.getContextPath()%>/Log",
+	                    traditional:true,
+	                    method: "POST",
+	                    data: {
+	                            file:$('#select option:selected').text(),
+	                            option:optionChecked
+	                            },
+	                    dataType:"json"
+	            })
+	            .done(function(json) {
+					$table.append("<tr><td>Status</td></tr>");
+					$.each(optionChecked, function(i, v) {
+							$table.children('tr:eq(0)').append('<td>'+optionList[v]+'</td>');
 					})
-		            .fail(function() {
-		            	if (optionChecked.length==0)
-		            		alert("OPTION을 선택하여 주세요.");
-		            })
+                    $.each(json, function(jarrKey, jarrValue){
+	                    $table.append("<tr></tr>");
+						$.each(jarrValue, function(jobKey, jobValue) {
+							$tr = $table.children('tr:eq('+(jarrKey+1)+')');
+							if (jobKey==0) {
+								//$tr.addClass("table-success");
+								$tr.append("<td><span class=\"badge bg-success\">101</span></td>");
+							}
+							else if (jobKey==1) {
+								//$tr.addClass("table-danger");
+								$tr.append("<td><span class=\"badge bg-danger\">102</span></td>");
+							}
+							else if (jobKey==2) {
+								//$tr.addClass("table-primary");
+								$tr.append("<td><span class=\"badge bg-primary\">103</span></td>");
+							}
+							else if (jobKey==3) {
+								//$tr.addClass("table-secondary");
+								$tr.append("<td><span class=\"badge bg-secondary\">104</span></td>");
+							}
+							$.each(jobValue, function(i, v) {
+								$tr.append("<td>"+v+"</td>");
+							})
+						})
+					});
+				})
+	            .fail(function() {
+	            	if (optionChecked.length==0)
+	            		alert("OPTION을 선택하여 주세요.");
+	            })
 			})
 		})
 </script>

@@ -1,5 +1,8 @@
 package blockChain;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
@@ -55,9 +58,8 @@ public class Log extends HttpServlet {
 		String id = (String) session.getAttribute("userID");
 		String pw = (String) session.getAttribute("userPW");
 		try {
-			UserServer server = new UserServer(id, pw);
-			ArrayList<block> b = server.getChain(fileName);
-
+			// 파일 가져오기
+			ArrayList<String> b = readForFetch(id, fileName);
 			if(b != null) {
 				String[] splitBlock;
 				json = new JSONArray();
@@ -70,9 +72,9 @@ public class Log extends HttpServlet {
 							addJson(splitBlock, "0");
 						else if(state.equals("Verification error"))
 							addJson(splitBlock, "1");
-						else if(state.equals("Different from other blockchains"))
+						else if(state.equals("Server blockchain is longer"))
 							addJson(splitBlock, "2");
-						else if(state.equals("No comparison objects"))
+						else if(state.equals("Server blockchain is shorter"))
 							addJson(splitBlock, "3");
 					}
 				}

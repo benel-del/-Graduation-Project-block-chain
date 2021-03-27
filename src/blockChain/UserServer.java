@@ -1,26 +1,48 @@
 package blockChain;
-// create, upload block chain
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Base64.Decoder;
 
-import crypto.RSA;
+import javax.crypto.Cipher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-public class UserServer {
+@WebServlet("/access")
+public class UserServer extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 	private Connection conn;
 	private ResultSet rs;
-	private String userID;
-	private String other;
-	private RSA rsa = new RSA();
+	private Socket soc;
+	private String key;
+	private ArrayList<String> files = new ArrayList<>();
+	static private ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
 	
-	private ArrayList<String> localfile = new ArrayList<>();
-	private ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
+	static String userID;
+	static String userPW;
 	
 	public UserServer(String userID, String userPW){
-		this.userID = userID;
+		super();
 		String dbURL = "jdbc:mysql://localhost:3306/" + userID + "?";
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -29,54 +51,81 @@ public class UserServer {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		getKey();
-		this.other = getOtherUser();
 		System.out.println("blockChainServer access [" + userID + "]");
-		fetchChain();	// local db content >> java code chain
+		this.userID = userID;
+		this.userPW = userPW;
 	}
+	
+	@Override
+	public void init() {
+		fetchChain();	// server >> java code chain
+		
+		for(String file : files) {
+			compare(file);
+		}
 
-	public void strt() {
 		try {
-			getCenterFileList();	// center filename list
+			Socket soc = new Socket("localhost", 6010);
 
-			for(String file : localfile) {
-				fecthContent(file);
+			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+			PrintWriter pw = new PrintWriter(soc.getOutputStream());
+
+			System.out.println(" Accept to Server Success...");
+			
+			while(true) {
+				String input = br.readLine();	// cand.no
+				if(verify(input) != -1) {
+					pw.println("ok");
+
+
+				}
+				pw.flush();
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		//System.out.println("localfile size: " + localfile.size());
+	}
+	
+	@Override
+	public void destroy() {
+		try {
+			soc.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doPost(request, response);
+	}
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
 	}
 
-	private void createTable(String file) {	// 2) center new file >> insert local_blockChain table
-		int index = localfile.size();
-		localfile.add(file);
-		chain.add(new ArrayList<block>());
-		chain.get(index).add(new block("START", file+"\n"));	// genesis block
-		
+	private void getLocalFileList() {	
 		try {
-			String sql = "INSERT INTO BlockChain(f_name) VALUES(?);";
+			String sql = "SELECT f_name FROM BlockChain;";
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, file);
-			pstmt.executeUpdate();
-			
-			sql = "CREATE TABLE " + file +"(content text not null, no int PRIMARY KEY default 0, sign varchar(350) not null, state varchar(40));";
-			pstmt = conn.prepareStatement(sql);
-			pstmt.executeUpdate();
-			
-			sql = "GRANT select ON " + file + " TO " + other + "@localhost";
-			pstmt = conn.prepareStatement(sql);
-			pstmt.executeUpdate();
-			
-			System.out.println("createTable " + file);
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				localfile.add(rs.getString(1));
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+	
+	private void compare(String file) {	// 2) compare server blockchain with disk blockchain
+		ArrayList<block> local = readForFetch(file);
+	}
+	
+	
 
-	private void fetchChain() {	// 1) get block chain in local db
-		String sql = "SELECT f_name FROM BlockChain;";
+	private void fetchChain() {	// 1) get block chain in server
+		String sql = "SELECT f_name FROM server.VIEW_LOG;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
@@ -86,38 +135,20 @@ public class UserServer {
 			}
 			
 			for(int i = 0; i < f_name.size(); i++) {
-				chain.add(new ArrayList<block>());
-				chain.get(chain.size()-1).add(new block("START", f_name.get(i) + "\n"));	// genesis block
-				localfile.add(f_name.get(i));
-				
 				String file = f_name.get(i);
-				ArrayList<block> other = getOtherChain(file, 1);
-				sql = "SELECT sign, content, state FROM " + file + ";";
+				chain.add(new ArrayList<block>());
+				chain.get(chain.size()-1).add(new block("START", file + "\n"));	// genesis block
+				files.add(file);
+				
+				sql = "SELECT sign, content FROM server." + file + ";";
 				pstmt = conn.prepareStatement(sql);
 				rs = pstmt.executeQuery();
 				while(rs.next()) {
-					System.out.println("fecthChain - BlockChain verification check");
 					String state = "Secure blockchain";
-					int dec = Integer.parseInt(rsa.decrypt(rs.getString(1), rsa.getPublicKey()));
+					int dec = Integer.parseInt(decrypt(rs.getString(1), getPublicKey(key)));
 					int hash = (chain.get(chain.size()-1).get(chain.get(chain.size()-1).size()-1).getSign() + chain.get(chain.size()-1).get(chain.get(chain.size()-1).size()-1).getContent()).hashCode();
 					if(dec != hash){ // error
 						state = "Verification error";
-					}
-					else if(other != null) {	// other block chain compare
-						if(chain.get(chain.size()-1).size()-1 < other.size()) {
-							if(!other.get(chain.get(chain.size()-1).size()-1).getState().equals("Verification error")) {
-								if(!other.get(chain.get(chain.size()-1).size()-1).getContent().equals(rs.getString(2)))
-									state = "Different from other blockchains";
-							}
-						}
-						else
-							state = "No comparison objects";
-					}
-					else if(other == null)
-						state = "No comparison objects";
-					
-					if(!rs.getString(3).equals(state)) {
-						updateState(file, state, chain.get(chain.size()-1).size());
 					}
 					chain.get(chain.size()-1).add(new block(rs.getString(1), rs.getString(2), state));
 				}
@@ -126,56 +157,82 @@ public class UserServer {
 			ex.printStackTrace();
 		}
 	}
-	
-	private void updateState(String file, String state, int no) {
+
+	static private ArrayList<block> readForFetch(String filename) {		// local blockchain >> code
+		String str1 = "";
+		String str2 = "";
+		boolean sign = true;
+		ArrayList<block> b = new ArrayList<>();
+		b.add(new block("START", filename+"\n"));
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID +" File/" + filename;
 		try {
-			String sql = "UPDATE " + file + " SET state=? WHERE no=?;";
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, state);
-			pstmt.setInt(2, no);
-			pstmt.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
+			File file = new File(path);
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufReader = new BufferedReader(fileReader);
+			String line = "";	// sign \n content ,
+			while((line = bufReader.readLine()) != null) {
+				if(line.equals(",")) {
+					sign = true;
+					b.add(new block(str1, str2));
+				}
+				if(sign) {
+					str1 = line;
+					sign = false;
+				}
+				else {
+					str2 += line + "\n";
+				}	
+			}
+			bufReader.close();
+		}catch(IOException e) {
+			System.out.println(e);
+		}
+		return b;
+	}
+	
+	static private void writeForFetch(String filename) {	// code >> local blockchain
+		int index = getIndex(filename);
+		ArrayList<block> b = chain.get(index);
+		System.out.println("downwrite " + filename);
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID +" File/" + filename;
+		try {
+			File file = new File(path);
+			if(!file.exists())
+				file.createNewFile();
+			FileWriter fw = new FileWriter(filename);
+			
+			String line = "";
+			for(int i = 1; i < b.size(); i++) {
+				line += b.get(i).getSign() + "\n" + b.get(i).getContent() + ",\n";
+			}
+			fw.write(line);
+			fw.close();
+		}catch(IOException e) {
+			System.out.println(e);
 		}
 	}
 	
-	private void getCenterFileList() {
-		String sql = "SELECT f_name FROM center.VIEW_LOG;";
-		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
+	private void fecthContent(String file) {	// 3) server new content >> block chain
+		int index = getIndex(file);
+		String sql = "";
+		PreparedStatement pstmt;
+		
+		int start = 0;
+		if(index == -1) {
+			createTable(file);
+		}
+		else {
+			sql ="SELECT * FROM " + file + ";";
+			pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
 			while(rs.next()) {
-				if(!localfile.contains(rs.getString(1))) {
-					createTable(rs.getString(1));
-				}
+				start++;
+				
 			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
 		}
-	}
-
-	private String getOtherUser(){	// user number limitied 2
-		String  user = "";
-		String sql = "SELECT userID FROM center.VIEW_USER WHERE userID != ?;";
+		sql = "SELECT * FROM server.VIEW_CAND;";
 		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, userID);
-			rs = pstmt.executeQuery();
-			if(rs.next()) {
-				user = rs.getString(1);
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return user;
-	}
-	
-	private void fecthContent(String file) {	// 3) center new content >> block chain
-		int index = getIndex(file);
-		String sql = "SELECT content FROM center." + file + " WHERE no >= ?;";
-		try {
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, chain.get(index).size());
+			
 			rs = pstmt.executeQuery();
 			int pre = chain.get(index).size();
 			while(rs.next()) {
@@ -183,7 +240,7 @@ public class UserServer {
 			}
 			if(chain.get(index).size() != pre) {	// uploadChain - 4) block chain >> local db
 				ArrayList<block> b = chain.get(index);
-				ArrayList<block> other = getOtherChain(file, pre);
+				ArrayList<block> other = getMyChain(file, pre);
 				for(int i = pre; i < b.size(); i++) {
 					sql = "INSERT INTO " + file + "(no, sign, content, state) VALUES(?, ?, ?, ?);";
 					try {
@@ -194,77 +251,27 @@ public class UserServer {
 						
 						// verification
 						String state = "Secure blockchain";
-						int dec = Integer.parseInt(rsa.decrypt(b.get(i).getSign(), rsa.getPublicKey()));
+						int dec = Integer.parseInt(decrypt(b.get(i).getSign(), getPublicKey(key));
 						int hash = (b.get(i-1).getSign() + b.get(i-1).getContent()).hashCode();
 						if(dec != hash){ // error
 							state = "Verification error";
 						}
-						else if(other != null) {	// other block chain compare
-							int otherStart = i - pre;
-							if(otherStart < other.size()) {
-								if(!other.get(otherStart).getState().equals("Verification error")) {
-									if(!other.get(otherStart).getContent().equals(b.get(i).getContent()))
-										state = "Different from other blockchains";
-								}
-								else
-									state = "No comparison objects";
-							}
-							else
-								state = "No comparison objects";
-						}
-						else if(other == null)
-							state = "No comparison objects";
 						pstmt.setString(4, state);
 						pstmt.executeUpdate();
 					} catch (Exception ex) {
 						ex.printStackTrace();
 					}
 				}
-				sql = "UPDATE BlockChain SET block_size=? WHERE f_name = ?";
-				pstmt = conn.prepareStatement(sql);
-				pstmt.setInt(1, b.size()-1);
-				pstmt.setString(2, file);
-				pstmt.executeUpdate();
 			}
 			else return;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
-
-	private String sign(int index) throws Exception {
-		int size = chain.get(index).size();
-		block b = chain.get(index).get(size-1);
-		return rsa.encrypt((b.getSign() + b.getContent()).hashCode() + "", rsa.getPrivateKey());
-	}
-	
-	private ArrayList<block> getOtherChain(String file, int start){
-		try {
-			String sql = "SELECT block_size FROM " + other + ".BlockChain WHERE f_name = ?;";
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, file);
-			rs = pstmt.executeQuery();
-			if(rs.next() && rs.getInt(1) >= start) {
-				ArrayList<block> b = new ArrayList<>();
-				sql = "SELECT content, state FROM " + other + "." + file + " WHERE no >= ?;";
-				pstmt = conn.prepareStatement(sql);
-				pstmt.setInt(1, start);
-				rs = pstmt.executeQuery();
-				while(rs.next()) {
-					b.add(new block("", rs.getString(1), rs.getString(2)));
-				}
-				return b;
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
 	
 	private int getIndex(String name) {
-		for(int i = 0; i < localfile.size(); i++) {
-			if(localfile.get(i).equals(name)) {
+		for(int i = 0; i < files.size(); i++) {
+			if(files.get(i).equals(name)) {
 				return i;
 			}
 		}
@@ -272,13 +279,12 @@ public class UserServer {
 	}
 	
 	private void getKey() {
-		String sql = "SELECT publicKey, privateKey FROM RSA_KEY;";
+		String sql = "SELECT publicKey FROM server.RSA_KEY;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
-				rsa.setPublicKey(rs.getString(1));
-				rsa.setPrivateKey(rs.getString(2));
+				key = rs.getString(1);
 			}
 			return;
 		} catch (Exception ex) {
@@ -286,8 +292,25 @@ public class UserServer {
 		}
 	}
 	
+	public String decrypt(String data, Key key) throws Exception {
+		Cipher cipher = Cipher.getInstance("RSA");
+		Decoder decoder = Base64.getDecoder();
+		byte[] bCipher = decoder.decode(data.getBytes());
+		cipher.init(Cipher.DECRYPT_MODE, key);
+		byte[] bPlain = cipher.doFinal(bCipher);
+		return new String(bPlain);
+    }
+	
+	private PublicKey getPublicKey(String publicKey) throws Exception {
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        Decoder decoder = Base64.getDecoder();
+        byte[] decodedKey = decoder.decode(publicKey.getBytes());
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodedKey);
+        return keyFactory.generatePublic(keySpec);
+    }
+	
 	public ArrayList<String> getList(){
-		return localfile;
+		return files;
 	}
 	public ArrayList<ArrayList<block>> getChain(){
 		return chain;

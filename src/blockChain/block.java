@@ -5,13 +5,13 @@ public class block {
 	private String content;
 	private String state;
 	
-	block(String sign, String content){
+	public block(String sign, String content){
 		this.sign = sign;
 		this.content = content;
 		this.state = "";
 	}
 	
-	block(String sign, String content, String state){
+	public block(String sign, String content, String state){
 		this.sign = sign;
 		this.content = content;
 		this.state = state;
