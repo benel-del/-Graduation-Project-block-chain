@@ -73,7 +73,6 @@ public class LogsView extends HttpServlet {
 	}
 
 	private JSONObject countConnDay () throws Exception { // parameter, name change
-//		ArrayList<String> filelist = server.getList();
 		File dir = new File("/usr/local/apache-tomcat-9.0.41/logs"); // ADD
 		String[] filelist = dir.list(); // ADD
 		String[] temp; // for file content split
@@ -154,10 +153,8 @@ public class LogsView extends HttpServlet {
 				BufferedReader br = new BufferedReader(filerd); // ADD
 				while ((line=br.readLine())!=null) {
 					if (line.contains("logView.jsp")) {
-						System.out.println(line);
 						temp = line.split("\\:");
 						countTime[Integer.parseInt(temp[8])]++;
-						System.out.println(countTime[Integer.parseInt(temp[8])]);
 					}
 				}
 		    }
@@ -167,7 +164,6 @@ public class LogsView extends HttpServlet {
 			if (i%3==2) jsObj.put((i/3)+"", countTime[i]);
 			else countTime[i+1] += countTime[i];
 		}
-		System.out.println(jsObj.toJSONString());
 		return jsObj;
 	}
 	
