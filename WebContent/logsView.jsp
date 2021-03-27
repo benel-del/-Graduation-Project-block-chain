@@ -69,13 +69,13 @@ $(function() {
 			dataType: "json"
 		})
         .done(function(json) {
-        	const orderedDay = sortResults(json);
+        	const ordered = sortResults(json);
         	var lineChart = new Chart(PCONN, {
 				type: 'line',
 				data: {
 					labels: Object.keys(ordered),
 					datasets: [{
-						label: '# of IP (Day)',
+						label: '# of IP',
 						fill: false,
 						lineTension: 0,
 						backgroundColor: "rgba(235, 159, 159, 0.4)",
@@ -92,7 +92,12 @@ $(function() {
 					title: {
         	            display: true,
 						text: 'Connection (Day/Month)'
-					}
+					}/* ,
+					legend: {
+						onClick: function (evt, item) {
+						alert('legend onClick: event:' + evt+'item :'+ item.text);
+						}
+					} */
 				}
         	})
         })
