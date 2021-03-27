@@ -20,7 +20,7 @@
 </head>
 <body>
 <div class="container-fluid">
-<div class="row mt-5 mb-5">
+<div class="row mt-5">
 	<div class="col-sm-9">
 		<div class="row file">
 			<div class="lead"><a href="logsView.jsp" class="link-secondary text-decoration-none">HTTP 클라이언트 접속 정보</a>&nbsp;&nbsp;&nbsp;<a href="logout.jsp" class="link-secondary text-decoration-none">logout</a></div>
@@ -31,6 +31,12 @@
 	</div>
 </div>
 <div class="row mt-5">
+	<div class="col-sm-2">
+		<button type="button" class="btn btn-secondary btn-sm person" id="day">DAY</button>
+		<button type="button" class="btn btn-secondary btn-sm person" id="month">MONTH</button>	
+	</div>
+</div>
+<div class="row mt-3">
 	<div class="col-sm-5 shadow-sm bg-light rounded"><canvas id="pconn"></canvas></div>
 	<div class="col-sm-1"></div>
 	<div class="col-sm-5 shadow-sm bg-light rounded"><canvas id="tconn"></canvas></div>
@@ -43,15 +49,6 @@
 <div class="row mt-5" style="display:none">
 	<div class="col-sm-1"><button type="button" class="btn btn-secondary" id="time">time</button></div>
 	<div class="col-sm-1"><button type="button" class="btn btn-secondary" id="load">load</button></div>
-	<div class="col-sm-1 dropdown">
-	<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-		Drop
-	</button>
-	<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-		<li><a class="dropdown-item person" id="day" href="#">day</a></li>
-	    <li><a class="dropdown-item person" id="month" href="#">month</a></li>
-	</ul>
-	</div>
 	<div class="col-sm-1"><button type="button" class="btn btn-secondary" id="err">error</button></div>
 </div>
 </div>
