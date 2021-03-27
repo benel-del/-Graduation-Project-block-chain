@@ -15,7 +15,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Base64.Decoder;
@@ -26,20 +25,25 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 @WebServlet("/access")
 public class UserServer extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	JSONArray json;
+	
 	private Connection conn;
 	private ResultSet rs;
 	private Socket soc;
 	private String key;
 	private ArrayList<String> files = new ArrayList<>();
-	static private ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
+	private ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
 	
-	static String userID;
-	static String userPW;
+	String userID;
+	String userPW;
+	String[] option;
 	
 	public UserServer(String userID, String userPW){
 		super();
@@ -48,7 +52,6 @@ public class UserServer extends HttpServlet {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn = DriverManager.getConnection(dbURL, userID, userPW);
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		System.out.println("blockChainServer access [" + userID + "]");
@@ -58,6 +61,7 @@ public class UserServer extends HttpServlet {
 	
 	@Override
 	public void init() {
+		getKey();
 		fetchChain();	// server >> java code chain
 		
 		for(String file : files) {
@@ -73,15 +77,13 @@ public class UserServer extends HttpServlet {
 			System.out.println(" Accept to Server Success...");
 			
 			while(true) {
-				String input = br.readLine();	// cand.no
-				if(verify(input) != -1) {
+				if(verify() == 1)		///asfdasd
 					pw.println("ok");
-
-
+				String file = br.readLine();
+				if(!file.equals("no")) {	// add block
+					fetchContent(file);
 				}
-				pw.flush();
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -101,28 +103,110 @@ public class UserServer extends HttpServlet {
 	}
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("UTF-8");
+		response.setContentType("text/html; charset=utf-8");
+		PrintWriter out = response.getWriter();
+		
+		String url = request.getParameter("name");
+		if(url.equals("logView")) {
+			String fileName = request.getParameter("file");
+			option = request.getParameterValues("option");
 
-	}
-
-	private void getLocalFileList() {	
-		try {
-			String sql = "SELECT f_name FROM BlockChain;";
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			rs = pstmt.executeQuery();
-			while(rs.next()) {
-				localfile.add(rs.getString(1));
+			ArrayList<block> b = getChain(fileName);
+			if(b != null) {
+				String[] splitBlock;
+				json = new JSONArray();
+				for(int i = 1; i < b.size(); i++){
+					String str[] = b.get(i).getContent().split("\n");
+					String state = b.get(i).getState();
+					for(int j = 0; j < str.length; j++) {
+						splitBlock = str[j].split("\\|");
+						if (state.equals("Secure blockchain"))
+							addJson(splitBlock, "0");
+						else if(state.equals("SERVER Verification error"))
+							addJson(splitBlock, "1");
+						else if(state.equals("Different from local file"))
+							addJson(splitBlock, "2");
+						else if(state.equals("LOCAL Verification error"))	// ???
+							addJson(splitBlock, "3");
+					}
+				}
 			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			out.print(json);
+		}
+		else if(url.equals("logsView")) {
+			//String fileName = request.getParameter("file");
+			//String[] option = request.getParameterValues("option");
+			logsView(fileName, option);
 		}
 	}
 	
-	private void compare(String file) {	// 2) compare server blockchain with disk blockchain
-		ArrayList<block> local = readForFetch(file);
+	private int verify() {	// 3) server.CAND check. if verify then return 1
+		String sql = "SELECT * from server.VIEW_CAND";	// no, f_name, sign
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				int no = rs.getInt(1);
+				String f_name = rs.getString(2);
+				String sign = rs.getString(3);
+				
+				ArrayList<block> b;
+				int index = getIndex(f_name);
+				if(index == -1) {
+					b = new ArrayList<block>();
+					b.add(new block("START", f_name + "\n"));	// genesis block
+				}
+				else {
+					b = chain.get(index);
+				}
+				
+				String state = "Y";
+				int dec = Integer.parseInt(decrypt(sign, getPublicKey(key)));
+				int hash = (b.get(b.size()-1).getSign() + b.get(b.size()-1).getContent()).hashCode();
+				if(dec != hash){ // error
+					state = "N";
+				}
+				
+				sql = "INSERT INTO server.VERIFY(no, f_name, userID, answer) VALUES(?, ?, ?, ?)";
+				pstmt = conn.prepareStatement(sql);
+				pstmt.setInt(1, no);
+				pstmt.setString(2, f_name);
+				pstmt.setString(3, userID);
+				pstmt.setString(4, state);
+				pstmt.executeUpdate();
+				
+				return no;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1;
 	}
-	
-	
+
+	private void compare(String file) {	// 2) compare server blockchain with disk blockchain
+		int index = getIndex(file);
+		ArrayList<block> local = readForFetch(file);
+		ArrayList<block> b = chain.get(index);
+		for(int i = 1; i < b.size(); i++) {
+			if(i >= local.size()) {	// 검증했던 블록이 로그아웃 이후로 추가된 것
+				writeForFetch(file);
+				return;
+			}
+			else if(b.get(i).getState().equals("SERVER Verification error"))
+				continue;
+			else if(local.get(i).getState().equals("Verification error")){	// local 신뢰성 잃음
+				chain.get(index).get(i).setState("LOCAL Verification error");
+				writeForFetch(file);
+				return;
+			}
+			else {
+				if(!local.get(i).getSign().equals(b.get(i).getSign()) || !local.get(i).getContent().equals(b.get(i).getContent())){	// local != server
+					chain.get(index).get(i).setState("Different from local file");
+				}
+			}
+		}
+	}
 
 	private void fetchChain() {	// 1) get block chain in server
 		String sql = "SELECT f_name FROM server.VIEW_LOG;";
@@ -148,7 +232,7 @@ public class UserServer extends HttpServlet {
 					int dec = Integer.parseInt(decrypt(rs.getString(1), getPublicKey(key)));
 					int hash = (chain.get(chain.size()-1).get(chain.get(chain.size()-1).size()-1).getSign() + chain.get(chain.size()-1).get(chain.get(chain.size()-1).size()-1).getContent()).hashCode();
 					if(dec != hash){ // error
-						state = "Verification error";
+						state = "SERVER Verification error";
 					}
 					chain.get(chain.size()-1).add(new block(rs.getString(1), rs.getString(2), state));
 				}
@@ -158,12 +242,13 @@ public class UserServer extends HttpServlet {
 		}
 	}
 
-	static private ArrayList<block> readForFetch(String filename) {		// local blockchain >> code
+	private ArrayList<block> readForFetch(String filename) {		// local blockchain >> code
 		String str1 = "";
 		String str2 = "";
 		boolean sign = true;
 		ArrayList<block> b = new ArrayList<>();
 		b.add(new block("START", filename+"\n"));
+		
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID +" File/" + filename;
 		try {
 			File file = new File(path);
@@ -173,7 +258,14 @@ public class UserServer extends HttpServlet {
 			while((line = bufReader.readLine()) != null) {
 				if(line.equals(",")) {
 					sign = true;
-					b.add(new block(str1, str2));
+					String state = "Secure blockchain";
+					int dec = Integer.parseInt(decrypt(str1, getPublicKey(key)));
+					int hash = (b.get(b.size()-1).getSign() + b.get(b.size()-1).getContent()).hashCode();
+					if(dec != hash){ // error
+						state = "Verification error";
+					}
+					b.add(new block(str1, str2, state));
+					str2 = "";
 				}
 				if(sign) {
 					str1 = line;
@@ -184,16 +276,16 @@ public class UserServer extends HttpServlet {
 				}	
 			}
 			bufReader.close();
-		}catch(IOException e) {
+		}catch(Exception e) {
 			System.out.println(e);
 		}
 		return b;
 	}
 	
-	static private void writeForFetch(String filename) {	// code >> local blockchain
+	private void writeForFetch(String filename) {	// code >> local blockchain
 		int index = getIndex(filename);
 		ArrayList<block> b = chain.get(index);
-		System.out.println("downwrite " + filename);
+		System.out.println("WRITE file " + filename);
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID +" File/" + filename;
 		try {
 			File file = new File(path);
@@ -212,55 +304,28 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	private void fecthContent(String file) {	// 3) server new content >> block chain
+	private void fetchContent(String file) {	// 4) add new block
 		int index = getIndex(file);
-		String sql = "";
-		PreparedStatement pstmt;
-		
-		int start = 0;
 		if(index == -1) {
-			createTable(file);
+			chain.add(new ArrayList<block>());
+			chain.get(chain.size()-1).add(new block("START", file + "\n"));	// genesis block
+			files.add(file);
 		}
-		else {
-			sql ="SELECT * FROM " + file + ";";
-			pstmt = conn.prepareStatement(sql);
-			rs = pstmt.executeQuery();
-			while(rs.next()) {
-				start++;
-				
-			}
-		}
-		sql = "SELECT * FROM server.VIEW_CAND;";
+
+		String sql = "SELECT no, sign, content FROM server." + file + " ORDER BY no DESC LIMIT 1;";	// 
 		try {
-			
+			PreparedStatement pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
-			int pre = chain.get(index).size();
-			while(rs.next()) {
-				chain.get(index).add(new block(sign(index), rs.getString(1)));
-			}
-			if(chain.get(index).size() != pre) {	// uploadChain - 4) block chain >> local db
-				ArrayList<block> b = chain.get(index);
-				ArrayList<block> other = getMyChain(file, pre);
-				for(int i = pre; i < b.size(); i++) {
-					sql = "INSERT INTO " + file + "(no, sign, content, state) VALUES(?, ?, ?, ?);";
-					try {
-						pstmt = conn.prepareStatement(sql);
-						pstmt.setInt(1, i);
-						pstmt.setString(2, b.get(i).getSign());
-						pstmt.setString(3, b.get(i).getContent());
-						
-						// verification
-						String state = "Secure blockchain";
-						int dec = Integer.parseInt(decrypt(b.get(i).getSign(), getPublicKey(key));
-						int hash = (b.get(i-1).getSign() + b.get(i-1).getContent()).hashCode();
-						if(dec != hash){ // error
-							state = "Verification error";
-						}
-						pstmt.setString(4, state);
-						pstmt.executeUpdate();
-					} catch (Exception ex) {
-						ex.printStackTrace();
+			if(rs.next()) {
+				if(rs.getInt(1) == chain.get(index).size()) {
+					String state = "Secure blockchain";
+					int dec = Integer.parseInt(decrypt(rs.getString(2), getPublicKey(key)));
+					int hash = (chain.get(index).get(chain.get(index).size()-1).getSign() + chain.get(index).get(chain.get(index).size()-1).getContent()).hashCode();
+					if(dec != hash){ // error
+						state = "SERVER Verification error";
 					}
+					chain.get(index).add(new block(rs.getString(2), rs.getString(3), state));
+					writeForFetch(file);
 				}
 			}
 			else return;
@@ -292,7 +357,7 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	public String decrypt(String data, Key key) throws Exception {
+	private String decrypt(String data, Key key) throws Exception {
 		Cipher cipher = Cipher.getInstance("RSA");
 		Decoder decoder = Base64.getDecoder();
 		byte[] bCipher = decoder.decode(data.getBytes());
@@ -312,23 +377,20 @@ public class UserServer extends HttpServlet {
 	public ArrayList<String> getList(){
 		return files;
 	}
-	public ArrayList<ArrayList<block>> getChain(){
-		return chain;
-	}
-	public ArrayList<block> getChain(String file){
+	public ArrayList<block> getChain(String file){	// logView
 		int index = getIndex(file);
 		if(index == -1)
 			return null;
 		return chain.get(index);
 	}
-	public ArrayList<String> getLog(String file){
+	public ArrayList<String> getLog(String file){	// logsView
 		int index = getIndex(file);
 		if(index == -1)
 			return null;
 		ArrayList<block> b = chain.get(index);
 		ArrayList<String> log = new ArrayList<>();
 		for(int i = 1; i < b.size(); i++) {
-			if(!b.get(i).getState().equals("Verification error")) {
+			if(!b.get(i).getState().equals("SERVER Verification error")) {
 				String[] str = b.get(i).getContent().split("\n");
 				for(int j = 0; j < str.length; j++) 
 					log.add(str[j]);
@@ -336,4 +398,15 @@ public class UserServer extends HttpServlet {
 		}
 		return log;
 	}
+	
+	@SuppressWarnings("unchecked")
+	private void addJson(String[] splitLog, String code) {
+    	JSONArray temp = new JSONArray();
+    	JSONObject temp2 = new JSONObject();
+    	for (int i=0; i< option.length; i++) {
+    		temp.add(splitLog[Integer.parseInt(option[i])]);
+    	}
+    	temp2.put(code, temp);
+    	json.add(temp2);
+    }
 }

@@ -113,9 +113,14 @@ class Sockets2 extends Thread {
 	public void run() {
 		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
+			PrintWriter pw = new PrintWriter(client.getOutputStream());
 			while(true) {
-				String input = br.readLine();	// ok
-				Server.verify(Integer.parseInt(input));	// 검증 결과 확인
+				String input = br.readLine();	// (int)no
+				String result = Server.verify(Integer.parseInt(input));	
+				if(result != null)	// 검증 결과 확인
+					pw.println(result);
+				else
+					pw.println("no");
 			}
 		} catch (Exception e) {
             e.printStackTrace();
@@ -337,7 +342,8 @@ public class Server {
 			if(!tmp.equals("")) {
 				try {
 					String sign = sign(index);
-					addViewCand(name, tmp, sign, line.size()-1, str2[6]);
+					chain.get(index).add(new block(sign, tmp));
+					addViewCand(name, tmp, sign, line.size()-1, str2[6], chain.get(index).size()-1);
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -345,8 +351,8 @@ public class Server {
 		}
 	}
 
-	static private void addViewCand(String tablename, String content, String sign, int size, String path) {
-		String sql = "INSERT INTO CAND(f_name, content, sign, set_line, fetch_name, no) VALUES(?, ?, ?, ?, ?, ?);";
+	static private void addViewCand(String tablename, String content, String sign, int size, String path, int blockPosition) {
+		String sql = "INSERT INTO CAND(f_name, content, sign, set_line, fetch_name, no, position) VALUES(?, ?, ?, ?, ?, ?, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, tablename);
@@ -355,6 +361,7 @@ public class Server {
 			pstmt.setInt(4, size);
 			pstmt.setString(5, path);
 			pstmt.setInt(6, candNo);
+			pstmt.setInt(7, blockPosition);
 			candNo++;
 			pstmt.executeUpdate();
 		} catch (Exception ex) {
@@ -362,7 +369,7 @@ public class Server {
 		}
 	}
 	
-	static protected void verify(int no) {
+	static protected String verify(int no) {
 		String sql = "SELECT * FROM VERIFY WHERE no = ?;";	// no, f_name, userID, answer
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -374,7 +381,7 @@ public class Server {
 				answer[count++] = rs.getString(4);
 			}
 			if(count == 2) {
-				sql = "SELECT f_name, content, sign, set_line, fetch_name FROM CAND WHERE no = ?";
+				sql = "SELECT f_name, content, sign, set_line, fetch_name, position FROM CAND WHERE no = ?";
 				pstmt.setInt(1, no);
 				rs = pstmt.executeQuery();
 				if(rs.next()) {
@@ -383,6 +390,7 @@ public class Server {
 					String sign = rs.getString(3);
 					int line = rs.getInt(4);
 					String fetch_name = rs.getString(5);
+					int p = rs.getInt(6);
 					
 					sql = "DELETE FROM CAND WHERE no = ?;";
 					pstmt = conn.prepareStatement(sql);
@@ -390,20 +398,25 @@ public class Server {
 					pstmt.executeUpdate();
 					
 					if(answer[0] == "Y" && answer[1] == "Y") {
-						int index = getIndex(fetch_name);
-						chain.get(index).add(new block(sign, content));
 						insertLog(f_name, content, sign);
 						setLastLine(f_name, line);
 						writeForFetch(fetch_name);
+						return f_name;
 					}
 					else {
-						addViewCand(f_name, content, sign, line, fetch_name);
+						//delete block
+						int index = getIndex(fetch_name);
+						for(int i = p; i < chain.get(index).size();) {
+							chain.get(index).remove(i);
+						}
+						addViewCand(f_name, content, sign, line, fetch_name, p);
 					}
 				}	
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		return null;
 	}
 	
 	static private String sign(int index) throws Exception {
@@ -511,6 +524,7 @@ public class Server {
 				if(line.equals(",")) {
 					sign = true;
 					chain.get(index).add(new block(str1, str2));
+					str2 = "";
 				}
 				if(sign) {
 					str1 = line;
@@ -577,7 +591,7 @@ public class Server {
 				"CREATE TABLE VERIFY(no int not null, f_name varchar(200), userID varchar(200) not null, answer varchar(50) not null);",
 				"CREATE VIEW VIEW_LOG as select f_name from LOG;",
 				"CREATE VIEW VIEW_KEY as select publicKey from RSA_KEY;",
-				"CREATE VIEW VIEW_CAND as select f_name, content, sign from CAND;"
+				"CREATE VIEW VIEW_CAND as select no, f_name, sign from CAND;"
 		};
 		String[] pw = {"Admin1!", "Admin2!"};
 		String sql = "";

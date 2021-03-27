@@ -61,11 +61,11 @@
 			</div>
 			<div>
 				<span class="badge bg-danger">102</span>
-				<span>Blockchain verification is failed</span>
+				<span>SERVER Blockchain verification is failed</span>
 			</div>
 			<div>
 				<span class="badge bg-primary">103</span>
-				<span>Server blockchain is longer</span>
+				<span>Different from local file</span>
 			</div>
 			<div>
 				<span class="badge bg-secondary">104</span>
@@ -137,13 +137,14 @@
 	            })
 	            $table.empty();
 	            $.ajax({
-	                    url: "<%=request.getContextPath()%>/Log",
+	                    url: "<%=request.getContextPath()%>/access",
 	                    traditional:true,
 	                    method: "POST",
 	                    data: {
-	                            file:$('#select option:selected').text(),
-	                            option:optionChecked
-	                            },
+                    		name: "logView",
+                            file:$('#select option:selected').text(),
+                            option:optionChecked
+                            },
 	                    dataType:"json"
 	            })
 	            .done(function(json) {
