@@ -41,12 +41,13 @@ public class UserServer extends HttpServlet {
 	static ArrayList<String> files = new ArrayList<>();
 	static ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
 	
-	static String userID;
+	String userID;
 	String userPW;
 	String[] option;
 	
 	public UserServer(String userID, String userPW){
 		super();
+		this.userID = userID;
 		this.userPW = userPW;
 		
 		String dbURL = "jdbc:mysql://localhost:3306/server?";
@@ -59,7 +60,7 @@ public class UserServer extends HttpServlet {
 			for(String file : files)
 				compare(file);
 			System.out.println("blockChainServer access [" + userID + "]");
-			Sockets soc = new Sockets(6011);
+			Sockets soc = new Sockets(userID, 6009);
 			soc.start();
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -124,8 +125,8 @@ public class UserServer extends HttpServlet {
 		out.print(json);
 	}
 	
-	static int verify() {	// 3) server.CAND check. if verify then return 1
-		String sql = "SELECT * from server.VIEW_CAND ORDER BY no ASC LIMIT 1 WHERE server.no NOT IN(SELECT no FROM server.VERIFY WHERE userID = ?)";	// no, f_name, sign
+	static int verify(String userID) {	// 3) server.CAND check. if verify then return 1
+		String sql = "SELECT * from server.VIEW_CAND WHERE VIEW_CAND.no NOT IN(SELECT no FROM server.VERIFY WHERE userID = ?) ORDER BY no ASC LIMIT 1";	// no, f_name, sign
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, userID);
@@ -175,14 +176,14 @@ public class UserServer extends HttpServlet {
 		ArrayList<block> b = chain.get(index);
 		for(int i = 1; i < b.size(); i++) {
 			if(i >= local.size()) {	// 寃�利앺뻽�뜕 釉붾줉�씠 濡쒓렇�븘�썐 �씠�썑濡� 異붽��맂 寃�
-				writeForFetch(file);
+				writeForFetch(userID, file);
 				return;
 			}
 			else if(b.get(i).getState().equals("SERVER Verification error"))
 				continue;
 			else if(local.get(i).getState().equals("Verification error")){	// local �떊猶곗꽦 �엪�쓬
 				chain.get(index).get(i).setState("LOCAL Verification error");
-				writeForFetch(file);
+				writeForFetch(userID, file);
 				return;
 			}
 			else {
@@ -270,7 +271,7 @@ public class UserServer extends HttpServlet {
 		return b;
 	}
 	
-	static void writeForFetch(String filename) {	// code >> local blockchain
+	static void writeForFetch(String userID, String filename) {	// code >> local blockchain
 		int index = getIndex(filename);
 		ArrayList<block> b = chain.get(index);
 		System.out.println("WRITE file " + filename);
@@ -292,7 +293,7 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	static void fetchContent(String file) {	// 4) add new block
+	static void fetchContent(String userID, String file) {	// 4) add new block
 		int index = getIndex(file);
 		if(index == -1) {
 			chain.add(new ArrayList<block>());
@@ -313,7 +314,7 @@ public class UserServer extends HttpServlet {
 						state = "SERVER Verification error";
 					}
 					chain.get(index).add(new block(rs.getString(2), rs.getString(3), state));
-					writeForFetch(file);
+					writeForFetch(userID, file);
 				}
 			}
 			else return;
@@ -577,9 +578,11 @@ public class UserServer extends HttpServlet {
 }
 
 class Sockets extends Thread {
+	String userID;
 	int port;
 	Socket soc;
-	Sockets(int port) {
+	Sockets(String userID, int port) {
+		this.userID = userID;
 		this.port = port;
 	}
 
@@ -590,16 +593,16 @@ class Sockets extends Thread {
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
 			
-			//System.out.println("Accept to Server[6011] Success...");
+			//System.out.println("Accept to Server[6009] Success...");
 
 			pw.println("verify");
 			int result; 
 			while(true) {
-				result = UserServer.verify();
+				result = UserServer.verify(userID);
 				pw.println(result);
 				String file = br.readLine();
 				if(!file.equals("no")) {	// add block
-					UserServer.fetchContent(file);
+					UserServer.fetchContent(userID, file);
 				}
 			}
 		} catch (Exception e) {

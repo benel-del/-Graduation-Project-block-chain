@@ -76,6 +76,10 @@ class Sockets extends Thread {
 	            	pw.println("no");
 	            	System.out.println("fail");
 	            }
+	            else {
+	            	pw.println("no");
+	            	System.out.println("db error");
+	            }
 	            pw.flush();
 			}
 			else {
@@ -183,7 +187,7 @@ public class Server {
 
 		ServerSocket server;
 		try {
-			server = new ServerSocket(6011);
+			server = new ServerSocket(6009);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
@@ -643,6 +647,7 @@ public class Server {
 	static private void init() {
 		System.out.println("=====================================BLOCKCAHIN CENTER START=====================================");
 		String[] user = {"user1", "user2"};
+		String[] pw = {"Admin1!", "Admin2!"};
 		String[] server_view = {"VIEW_LOG", "VIEW_KEY", "VIEW_CAND"};
 		String[] server = {
 				"USE server;",
@@ -655,7 +660,6 @@ public class Server {
 				"CREATE VIEW VIEW_KEY as select publicKey from RSA_KEY;",
 				"CREATE VIEW VIEW_CAND as select no, f_name, sign from CAND;"
 		};
-		String[] pw = {"Admin1!", "Admin2!"};
 		String sql = "";
 		PreparedStatement pstmt = null;
 		try {
@@ -698,7 +702,7 @@ public class Server {
 					pstmt = conn.prepareStatement(sql);
 					pstmt.executeUpdate();	
 				}
-				sql = "GRANT insert ON server.VERIFY TO " + user[i] + "@localhost;";
+				sql = "GRANT insert, select ON server.VERIFY TO " + user[i] + "@localhost;";
 				pstmt = conn.prepareStatement(sql);
 				pstmt.executeUpdate();
 			}
