@@ -5,11 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,8 +15,6 @@ import javax.servlet.http.HttpSession;
 @WebServlet("/login")
 public class Login extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private Connection conn;
-	private ResultSet rs;
 
 	public Login() {
 	        super();
@@ -57,12 +50,13 @@ public class Login extends HttpServlet {
 	
 	public int connect(String userID, String userPW) {
 		try {
-			Socket soc = new Socket("localhost", 6009);
+			Socket soc = new Socket("localhost", 6011);
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
 
-			System.out.println(" Accept to Server Success...");
+			System.out.println("[LOGIN] Accept to Server Success...");
+			pw.println("login");
 			pw.println(userID);
 			pw.println(userPW);
 			pw.flush();

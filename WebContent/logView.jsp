@@ -61,7 +61,7 @@
 			</div>
 			<div>
 				<span class="badge bg-danger">102</span>
-				<span>SERVER Blockchain verification is failed</span>
+				<span>SERVER Verification error</span>
 			</div>
 			<div>
 				<span class="badge bg-primary">103</span>
@@ -69,7 +69,7 @@
 			</div>
 			<div>
 				<span class="badge bg-secondary">104</span>
-				<span>Server blockchain is shorter</span>
+				<span>LOCAL Verification error</span>
 			</div>
 		</div>
 	</div>

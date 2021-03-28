@@ -63,20 +63,36 @@ class Sockets extends Thread {
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			PrintWriter pw = new PrintWriter(client.getOutputStream());
 			
-			String userID = br.readLine();
-            String userPW = br.readLine();
+			if(br.readLine().equals("login")) {
+				String userID = br.readLine();
+	            String userPW = br.readLine();
 
-            System.out.println(getTime() + " " + userID + ": USER IDENTIFY CHECK");
-            int result = userCheck(userID, userPW);
-            if(result == 1) {
-            	pw.println("complete");
-            }
-            else if(result == -1) {
-            	pw.println("no");
-            	System.out.println("fail");
-            }
-            pw.flush();
-
+	            System.out.println(getTime() + " " + userID + ": USER IDENTIFY CHECK");
+	            int result = userCheck(userID, userPW);
+	            if(result == 1) {
+	            	pw.println("complete");
+	            }
+	            else if(result == -1) {
+	            	pw.println("no");
+	            	System.out.println("fail");
+	            }
+	            pw.flush();
+			}
+			else {
+				System.out.println(getTime() + " verify");
+				while(true) {
+					String input = br.readLine();	// (int)no
+					if(!input.equals("-1")) {
+						String result = Server.verify(Integer.parseInt(input));	
+						if(result != null)	// 검증 결과 확인
+							pw.println(result);
+						else
+							pw.println("no");
+					}
+					pw.println("no");
+				}
+				
+			}
 		} catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -116,50 +132,12 @@ class Sockets extends Thread {
     }
 }
 
-class Sockets2 extends Thread {
-	Socket client;
-	Connection conn;
-	Sockets2(Socket client) {
-		this.client = client;
-	}
-	
-	public void run() {
-		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-			PrintWriter pw = new PrintWriter(client.getOutputStream());
-			while(true) {
-				String input = br.readLine();	// (int)no
-				String result = Server.verify(Integer.parseInt(input));	
-				if(result != null)	// 검증 결과 확인
-					pw.println(result);
-				else
-					pw.println("no");
-			}
-		} catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-        	try {
-				client.close();
-			} catch (IOException e) {
-				System.out.println(getTime() + "Client close error");
-			}
-        }
-	}
-
-	private String getTime() {
-        String threadName = Thread.currentThread().getName();
-        SimpleDateFormat f = new SimpleDateFormat("[hh:mm:ss]");
-        return f.format(new Date()) + threadName;
-    }
-}
-
 public class Server {
 	static protected Connection conn;
 	static protected ResultSet rs;
 	static private String[] key;
 	static private ArrayList<String> files = new ArrayList<>();
 	static private ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
-	static int candNo = 0;
 	
 	static public void main(String[] args) {
 		init();
@@ -171,7 +149,6 @@ public class Server {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
 		} catch (ClassNotFoundException | SQLException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}	
 		
@@ -180,7 +157,10 @@ public class Server {
 		String[] fileNameOfPath = new File(path).list();
 		System.out.println("********** local file uploading **********");
 		for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
-			insertFile2(fileNameOfPath[i]);
+			if(fileNameOfPath[i].equals("log.txt"))
+				readTableInfo(fileNameOfPath[i]);
+			else
+				insertFile2(fileNameOfPath[i]);
 		}
 		
 		System.out.println("***************** update *****************");
@@ -191,13 +171,7 @@ public class Server {
 				try {
 					ArrayList<String> file = getUpdateList();
 					for(int i = 0; i < file.size(); i++) {
-						String[] str = file.get(i).split(" ");
-						String[] str2 = str[3].split("/");
-						if(files.contains(str2[6]))
-							updateFile(file.get(i));	// update LOG last_access_time 
-						else
-							insertFile(file.get(i));	// insert LOG new log file
-						readFile(file.get(i));	// read real file, update db log_20210000
+						readFile(file.get(i));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -207,21 +181,15 @@ public class Server {
 		}, 0, sleepSec, TimeUnit.SECONDS);
 		
 
-		ServerSocket server, server2;
+		ServerSocket server;
 		try {
-			server = new ServerSocket(6009);
-			server2 = new ServerSocket(6010);
+			server = new ServerSocket(6011);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
 				sockets.start();
-				
-				Socket client2 = server2.accept();
-				Sockets2 sockets2 = new Sockets2(client2);
-				sockets2.start();
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	
@@ -279,18 +247,10 @@ public class Server {
 		files.add(str[8]);
 		chain.add(new ArrayList<block>());
 		chain.get(index).add(new block("START", name+"\n"));
-		int last = readForFetch(str[8]);
-		String sql = "INSERT INTO LOG(f_name, real_name, location, last_read_line) VALUES(?, ?, ?, ?);";
+		readForFetch(str[8]);
 		try {
+			String sql = "CREATE TABLE " + name + " (content text not null, no int PRIMARY KEY auto_increment, sign varchar(350) not null);";
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, name);
-			pstmt.setString(2, str[8]);
-			pstmt.setString(3, "/usr/local/lib/apache-tomcat-9.0.43/logs/");
-			pstmt.setInt(4, last);
-			pstmt.executeUpdate();
-			
-			sql = "CREATE TABLE " + name + " (content text not null, no int PRIMARY KEY auto_increment, sign varchar(350) not null);";
-			pstmt = conn.prepareStatement(sql);
 			pstmt.executeUpdate();
 			
 			sql = "GRANT select ON " + name + " TO user1@localhost";
@@ -308,6 +268,69 @@ public class Server {
 		return -1;	// db error
 	}
 	
+	static private int readTableInfo(String file) {
+		// file: log.txt
+		System.out.println(getTime() + "fetch LOG table - " + file);
+		try {
+			ArrayList<String> line = readInfo();
+			for(int i = 0; i < line.size(); i++) {
+				String[] info = line.get(i).split(" ");
+				String sql = "INSERT INTO LOG(f_name, real_name, location, last_access_time, last_read_line) VALUES(?, ?, ?, ?, ?);";
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				pstmt.setString(1, info[0]);
+				pstmt.setString(2, info[1]);
+				pstmt.setString(3, info[2]);
+				pstmt.setString(4, info[3] + " " + info[4] + " " + info[5]);
+				pstmt.setInt(5, Integer.parseInt(info[6]));
+				pstmt.executeUpdate();
+			}
+			return 1;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return -1;	// db error
+	}
+	
+	static private ArrayList<String> readInfo(){
+		ArrayList<String> Line = new ArrayList<>();
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/log.txt";
+		try {
+			File file = new File(path);
+			FileReader fileReader = new FileReader(file);
+			BufferedReader bufReader = new BufferedReader(fileReader);
+			String line = "";
+			while((line = bufReader.readLine()) != null) {
+				Line.add(line);
+			}
+			bufReader.close();
+		}catch(IOException e) {
+			System.out.println(e);
+		}
+		return Line;
+	}
+	
+	static private void writeInfo() {
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/log.txt";
+		try {
+			File file = new File(path);
+			if(!file.exists())
+				file.createNewFile();
+			FileWriter fw = new FileWriter("log.txt");
+			
+			String line = "";
+			String sql = "SELECT * FROM LOG;";	// f_name, real_name, location, last_update_time, last_read_line
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				line += rs.getString(1) + " " + rs.getString(2) + " " + rs.getString(3) + " " + rs.getString(4) + " " + rs.getInt(5) + "\n";
+			}
+			fw.write(line);
+			fw.close();
+		}catch(Exception e) {
+			System.out.println(e);
+		}
+	}
+	
 	static private void dbUpload(String file) {
 		int index = getIndex(file);
 		ArrayList<block> b = chain.get(index);
@@ -323,16 +346,14 @@ public class Server {
 		return "log_" + str2[0] + str2[1] + str2[2];
 	}
 	
-	static private int updateFile(String file) {
-		// file: 2O 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
+	static private int updateFile(String file, String time) {
+		// time: 2O 27 18:42
 		System.out.println(getTime() + "UPDATE LOG(last_update_time) - " + file);
-		String[] str = file.split(" ");
-		String[] str2 = str[3].split("/");
 		String sql = "UPDATE LOG SET last_update_time=? WHERE real_name=?;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, str[0] + " " + str[1] + " " + str[2]);
-			pstmt.setString(2, str2[6]);
+			pstmt.setString(1, time);
+			pstmt.setString(2, file);
 			pstmt.executeUpdate();
 			return 1;
 		} catch (Exception ex) {
@@ -342,12 +363,11 @@ public class Server {
 	}
 
 	static private void readFile(String file) {
-		// file: 2O 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
-		String[] str = file.split(" ");
-		ArrayList<String> line = readLogFile(str[3]);
-		String[] str2 = str[3].split("/");
-		int index = getIndex(str2[6]);
-		String name = tableNaming(str2[6]);
+		// file: /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
+		String[] str = file.split("/");
+		ArrayList<String> line = readLogFile(file);
+		int index = getIndex(str[6]);
+		String name = tableNaming(str[6]);
 		int start = getLastLine(name);
 		if(start > -2) {
 			String tmp = "";
@@ -358,8 +378,8 @@ public class Server {
 				try {
 					String sign = sign(index);
 					chain.get(index).add(new block(sign, tmp));
-					System.out.println("waiting user access...");
-					addViewCand(name, tmp, sign, line.size()-1, str2[6], chain.get(index).size()-1);
+					System.out.println("waiting user access... " + file);
+					addViewCand(name, tmp, sign, line.size()-1, str[6], chain.get(index).size()-1);
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -368,7 +388,7 @@ public class Server {
 	}
 
 	static private void addViewCand(String tablename, String content, String sign, int size, String path, int blockPosition) {
-		String sql = "INSERT INTO CAND(f_name, content, sign, set_line, fetch_name, no, position) VALUES(?, ?, ?, ?, ?, ?, ?);";
+		String sql = "INSERT INTO CAND(f_name, content, sign, set_line, fetch_name, position) VALUES(?, ?, ?, ?, ?, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, tablename);
@@ -376,9 +396,7 @@ public class Server {
 			pstmt.setString(3, sign);
 			pstmt.setInt(4, size);
 			pstmt.setString(5, path);
-			pstmt.setInt(6, candNo);
-			pstmt.setInt(7, blockPosition);
-			candNo++;
+			pstmt.setInt(6, blockPosition);
 			pstmt.executeUpdate();
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -413,9 +431,15 @@ public class Server {
 					pstmt.setInt(1, no);
 					pstmt.executeUpdate();
 					
+					sql = "DELETE FROM VERIFY WHERE no = ?;";
+					pstmt = conn.prepareStatement(sql);
+					pstmt.setInt(1, no);
+					pstmt.executeUpdate();
+					
 					if(answer[0] == "Y" && answer[1] == "Y") {
 						insertLog(f_name, content, sign);
 						setLastLine(f_name, line);
+						writeInfo();
 						writeForFetch(fetch_name);
 						return f_name;
 					}
@@ -457,13 +481,22 @@ public class Server {
 	}
 	
 	static private int getLastLine(String file) {
-		String sql = "SELECT last_read_line FROM LOG WHERE f_name = ?;";
 		try {
+			String sql = "SELECT set_line FROM CAND WHERE f_name = ? ORDER BY no DESC LIMIT 1;";
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, file);
 			ResultSet rs = pstmt.executeQuery();
-			if(rs.next())
+			if(rs.next()) {
 				return rs.getInt(1);
+			}
+			else {
+				sql = "SELECT last_read_line FROM LOG WHERE f_name = ?;";
+				pstmt = conn.prepareStatement(sql);
+				pstmt.setString(1, file);
+				rs = pstmt.executeQuery();
+				if(rs.next())
+					return rs.getInt(1);
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -492,12 +525,28 @@ public class Server {
 			BufferedReader bufReader = new BufferedReader(fileReader);
 			String line = "";
 			while((line = bufReader.readLine()) != null) {
-				Line.add(line);
+				String[] str = line.split(" ");
+				String[] str2 = str[3].split("/");
+				String time = str[0] + " " + str[1] + " " + str[2];
+				String sql = "SELECT last_update_time FROM LOG WHERE real_name = ?;";
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				pstmt.setString(1, str2[6]);
+				ResultSet rs = pstmt.executeQuery();
+				if(rs.next()) {
+					if(rs.getString(1).equals(time))
+						continue;
+					updateFile(str2[6], time);
+					Line.add(str[3]);
+				}
+				else {
+					insertFile(line);
+					Line.add(str[3]);
+				}
 			}
 			bufReader.close();
 		}catch(FileNotFoundException e) {
 			Line.add("Error:: file not found - " + path);
-		}catch(IOException e) {
+		}catch(Exception e) {
 			System.out.println(e);
 		}
 		return Line;
@@ -524,13 +573,12 @@ public class Server {
 		return Line;
 	}
 	
-	static private int readForFetch(String filename) {		// local blockchain >> code
+	static private void readForFetch(String filename) {		// local blockchain >> code
 		int index = getIndex(filename);
 		String str1 = "";
 		String str2 = "";
 		boolean sign = true;
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/" + filename;
-		int count = 0;
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -548,14 +596,12 @@ public class Server {
 				}
 				else {
 					str2 += line + "\n";
-					count++;
 				}	
 			}
 			bufReader.close();
 		}catch(IOException e) {
 			System.out.println(e);
 		}
-		return count;
 	}
 	
 	static private void writeForFetch(String filename) {	// code >> local blockchain
@@ -601,7 +647,7 @@ public class Server {
 		String[] server = {
 				"USE server;",
 				"CREATE TABLE USER(userID varchar(200) primary key, userPW varchar(200) not null);",
-				"CREATE TABLE LOG(f_name varchar(200) primary key, real_name varchar(200) not null, location varchar(200) not null, last_update_time varchar(20) not null, last_read_line int not null default -1);",
+				"CREATE TABLE LOG(f_name varchar(200) primary key, real_name varchar(200), location varchar(200) not null, last_update_time varchar(20), last_read_line int default -1);",
 				"CREATE TABLE RSA_KEY(publicKey varchar(400), privateKey varchar(1650));",
 				"CREATE TABLE CAND(no int primary key auto_increment, f_name varchar(200), content text, sign varchar(350), set_line int, fetch_name varchar(200), position int);",
 				"CREATE TABLE VERIFY(no int not null, f_name varchar(200), userID varchar(200) not null, answer varchar(50) not null);",

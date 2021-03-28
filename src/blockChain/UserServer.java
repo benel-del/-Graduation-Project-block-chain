@@ -20,7 +20,6 @@ import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Base64.Decoder;
-
 import javax.crypto.Cipher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -31,74 +30,47 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+
 @WebServlet("/access")
 public class UserServer extends HttpServlet {
-	private static final long serialVersionUID = 1L;
+	static final long serialVersionUID = 1L;
 	
-	private Connection conn;
-	private ResultSet rs;
-	private Socket soc;
-	private String key;
-	private ArrayList<String> files = new ArrayList<>();
-	private ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
+	static Connection conn;
+	static ResultSet rs;
+	static String key;
+	static ArrayList<String> files = new ArrayList<>();
+	static ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
 	
-	String userID;
+	static String userID;
 	String userPW;
 	String[] option;
 	
 	public UserServer(String userID, String userPW){
 		super();
-		String dbURL = "jdbc:mysql://localhost:3306/" + userID + "?";
+		this.userPW = userPW;
+		
+		String dbURL = "jdbc:mysql://localhost:3306/server?";
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn = DriverManager.getConnection(dbURL, userID, userPW);
+			
+			getKey();
+			fetchChain();	// server >> java code chain
+			for(String file : files)
+				compare(file);
+			System.out.println("blockChainServer access [" + userID + "]");
+			Sockets soc = new Sockets(6011);
+			soc.start();
 		} catch (Exception e1) {
 			e1.printStackTrace();
-		}
-		System.out.println("blockChainServer access [" + userID + "]");
-		this.userID = userID;
-		this.userPW = userPW;
+		}	
 	}
 	
 	@Override
 	public void init() {
-		getKey();
-		fetchChain();	// server >> java code chain
-		
-		for(String file : files) {
-			compare(file);
-		}
 
-		try {
-			Socket soc = new Socket("localhost", 6010);
-
-			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
-			PrintWriter pw = new PrintWriter(soc.getOutputStream());
-
-			System.out.println(" Accept to Server Success...");
-			
-			while(true) {
-				if(verify() == 1)		///asfdasd
-					pw.println("ok");
-				String file = br.readLine();
-				if(!file.equals("no")) {	// add block
-					fetchContent(file);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
-	
-	@Override
-	public void destroy() {
-		try {
-			soc.close();
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
+
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doPost(request, response);
 	}
@@ -152,16 +124,18 @@ public class UserServer extends HttpServlet {
 		out.print(json);
 	}
 	
-	private int verify() {	// 3) server.CAND check. if verify then return 1
-		String sql = "SELECT * from server.VIEW_CAND";	// no, f_name, sign
+	static int verify() {	// 3) server.CAND check. if verify then return 1
+		String sql = "SELECT * from server.VIEW_CAND ORDER BY no ASC LIMIT 1 WHERE server.no NOT IN(SELECT no FROM server.VERIFY WHERE userID = ?)";	// no, f_name, sign
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, userID);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				int no = rs.getInt(1);
 				String f_name = rs.getString(2);
 				String sign = rs.getString(3);
-				
+				System.out.println("[VERIFY] " + userID + ": number." + no);
+
 				ArrayList<block> b;
 				int index = getIndex(f_name);
 				if(index == -1) {
@@ -195,7 +169,7 @@ public class UserServer extends HttpServlet {
 		return -1;
 	}
 
-	private void compare(String file) {	// 2) compare server blockchain with disk blockchain
+	void compare(String file) {	// 2) compare server blockchain with disk blockchain
 		int index = getIndex(file);
 		ArrayList<block> local = readForFetch(file);
 		ArrayList<block> b = chain.get(index);
@@ -219,7 +193,8 @@ public class UserServer extends HttpServlet {
 		}
 	}
 
-	private void fetchChain() {	// 1) get block chain in server
+	void fetchChain() {	// 1) get server's blockchain
+		System.out.println("[FETCH] " + userID + " - get server's blockchain");
 		String sql = "SELECT f_name FROM server.VIEW_LOG;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -253,7 +228,7 @@ public class UserServer extends HttpServlet {
 		}
 	}
 
-	private ArrayList<block> readForFetch(String filename) {		// local blockchain >> code
+	ArrayList<block> readForFetch(String filename) {		// local blockchain >> code
 		String str1 = "";
 		String str2 = "";
 		boolean sign = true;
@@ -263,37 +238,39 @@ public class UserServer extends HttpServlet {
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID +" File/" + filename;
 		try {
 			File file = new File(path);
-			FileReader fileReader = new FileReader(file);
-			BufferedReader bufReader = new BufferedReader(fileReader);
-			String line = "";	// sign \n content ,
-			while((line = bufReader.readLine()) != null) {
-				if(line.equals(",")) {
-					sign = true;
-					String state = "Secure blockchain";
-					int dec = Integer.parseInt(decrypt(str1, getPublicKey(key)));
-					int hash = (b.get(b.size()-1).getSign() + b.get(b.size()-1).getContent()).hashCode();
-					if(dec != hash){ // error
-						state = "Verification error";
+			if(file.exists()) {
+				FileReader fileReader = new FileReader(file);
+				BufferedReader bufReader = new BufferedReader(fileReader);
+				String line = "";	// sign \n content ,
+				while((line = bufReader.readLine()) != null) {
+					if(line.equals(",")) {
+						sign = true;
+						String state = "Secure blockchain";
+						int dec = Integer.parseInt(decrypt(str1, getPublicKey(key)));
+						int hash = (b.get(b.size()-1).getSign() + b.get(b.size()-1).getContent()).hashCode();
+						if(dec != hash){ // error
+							state = "Verification error";
+						}
+						b.add(new block(str1, str2, state));
+						str2 = "";
 					}
-					b.add(new block(str1, str2, state));
-					str2 = "";
+					if(sign) {
+						str1 = line;
+						sign = false;
+					}
+					else {
+						str2 += line + "\n";
+					}
 				}
-				if(sign) {
-					str1 = line;
-					sign = false;
-				}
-				else {
-					str2 += line + "\n";
-				}	
+				bufReader.close();
 			}
-			bufReader.close();
 		}catch(Exception e) {
 			System.out.println(e);
 		}
 		return b;
 	}
 	
-	private void writeForFetch(String filename) {	// code >> local blockchain
+	static void writeForFetch(String filename) {	// code >> local blockchain
 		int index = getIndex(filename);
 		ArrayList<block> b = chain.get(index);
 		System.out.println("WRITE file " + filename);
@@ -315,7 +292,7 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	private void fetchContent(String file) {	// 4) add new block
+	static void fetchContent(String file) {	// 4) add new block
 		int index = getIndex(file);
 		if(index == -1) {
 			chain.add(new ArrayList<block>());
@@ -345,7 +322,7 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	private int getIndex(String name) {
+	static int getIndex(String name) {
 		for(int i = 0; i < files.size(); i++) {
 			if(files.get(i).equals(name)) {
 				return i;
@@ -354,8 +331,8 @@ public class UserServer extends HttpServlet {
 		return -1;
 	}
 	
-	private void getKey() {
-		String sql = "SELECT publicKey FROM server.RSA_KEY;";
+	void getKey() {
+		String sql = "SELECT publicKey FROM server.VIEW_KEY;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
@@ -368,7 +345,7 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	private String decrypt(String data, Key key) throws Exception {
+	static String decrypt(String data, Key key) throws Exception {
 		Cipher cipher = Cipher.getInstance("RSA");
 		Decoder decoder = Base64.getDecoder();
 		byte[] bCipher = decoder.decode(data.getBytes());
@@ -377,7 +354,7 @@ public class UserServer extends HttpServlet {
 		return new String(bPlain);
     }
 	
-	private PublicKey getPublicKey(String publicKey) throws Exception {
+	static PublicKey getPublicKey(String publicKey) throws Exception {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         Decoder decoder = Base64.getDecoder();
         byte[] decodedKey = decoder.decode(publicKey.getBytes());
@@ -411,7 +388,7 @@ public class UserServer extends HttpServlet {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private JSONObject addJson(String[] splitLog, String code) {
+	JSONObject addJson(String[] splitLog, String code) {
     	JSONArray temp = new JSONArray();
     	JSONObject temp2 = new JSONObject();
     	for (int i=0; i< option.length; i++) {
@@ -423,7 +400,7 @@ public class UserServer extends HttpServlet {
     }
 	
 	@SuppressWarnings("unchecked")
-	private JSONObject countConnDay () throws Exception { // parameter, name change
+	JSONObject countConnDay () throws Exception { // parameter, name change
 		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs"); // ADD
 		ArrayList<String> filelist = getList();
 		//String[] filelist = dir.list(); // ADD
@@ -452,7 +429,7 @@ public class UserServer extends HttpServlet {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private JSONObject countConnMonth() throws Exception {
+	JSONObject countConnMonth() throws Exception {
 		Calendar cal = Calendar.getInstance();
 		int recentM = cal.get(Calendar.MONTH)+1;
 		int recentY = cal.get(Calendar.YEAR);
@@ -492,9 +469,9 @@ public class UserServer extends HttpServlet {
 		// monthList[1].get();
 		return jsObj;
 	}
-	
-	// ? 
-	private JSONObject countConnTime() throws Exception {
+
+	@SuppressWarnings("unchecked")
+	JSONObject countConnTime() throws Exception {
 		// 0:0:0:0:0:0:0:1|127.0.0.1|11157|HTTP/1.1|GET|[19/Mar/2021:17:13:51 +0900]|200|-|/
 		Calendar cal = Calendar.getInstance();
 		int recentD = cal.get(Calendar.DAY_OF_MONTH);
@@ -504,12 +481,10 @@ public class UserServer extends HttpServlet {
 		//String[] filenames = dir.list();
 		ArrayList<String> filelist = getList();
 		JSONObject jsObj = new JSONObject();
-		int[] countTime = new int[24];
-		String line = ""; // 
+		int[] countTime = new int[24]; 
 		String[] temp; // for log line split
 		for (int i = 0; i < filelist.size(); i++) {
 		    if (filelist.get(i).equals("log_"+recentY+String.format("%02d", recentM)+recentD)) {
-				HashSet<String> hs = new HashSet<String>();
 				ArrayList<String> f = getLog(filelist.get(i));
 				for (int j=0; j<f.size(); j++) {
 					if (f.get(i).contains("logView.jsp")) {
@@ -536,7 +511,7 @@ public class UserServer extends HttpServlet {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private JSONObject countLoad() throws Exception {
+	JSONObject countLoad() throws Exception {
 		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs");
 		//String[] filelist = dir.list(); // ADD
 		ArrayList<String> filelist = getList();
@@ -570,7 +545,7 @@ public class UserServer extends HttpServlet {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private JSONObject countStatus() throws Exception {
+	JSONObject countStatus() throws Exception {
 		JSONObject jsObj = new JSONObject();
 		//JSONObject jtemp1 = new JSONObject();
 		//JSONObject jtemp2 = new JSONObject();
@@ -598,5 +573,43 @@ public class UserServer extends HttpServlet {
 			jsObj.put(filename[1], hs.size());
 		}
 		return jsObj;
+	}
+}
+
+class Sockets extends Thread {
+	int port;
+	Socket soc;
+	Sockets(int port) {
+		this.port = port;
+	}
+
+	public void run() {
+		try {
+			soc = new Socket("localhost", port);
+			
+			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+			PrintWriter pw = new PrintWriter(soc.getOutputStream());
+			
+			//System.out.println("Accept to Server[6011] Success...");
+
+			pw.println("verify");
+			int result; 
+			while(true) {
+				result = UserServer.verify();
+				pw.println(result);
+				String file = br.readLine();
+				if(!file.equals("no")) {	// add block
+					UserServer.fetchContent(file);
+				}
+			}
+		} catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+        	try {
+				soc.close();
+			} catch (IOException e) {
+				System.out.println("Client close error");
+			}
+        }
 	}
 }

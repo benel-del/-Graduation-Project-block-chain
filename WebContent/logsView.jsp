@@ -1,5 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ page import="blockChain.UserServer" %>
+<%@ page import="java.io.PrintWriter" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,11 +21,26 @@
 	<title>Log Analysis</title>
 </head>
 <body>
+<%
+	String userID = null;
+	String userPW = null;
+	if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
+		userID = (String) session.getAttribute("userID");
+		userPW = (String) session.getAttribute("userPW");
+		new UserServer(userID, userPW);
+	}
+	else{
+		PrintWriter script = response.getWriter();
+		script.println("<script>");
+		script.println("location.href = 'admin.jsp'");
+		script.println("</script>");
+	}
+%>
 <div class="container-fluid">
 <div class="row mt-5">
 	<div class="col-sm-9">
 		<div class="row file">
-			<div class="lead"><a href="logsView.jsp" class="link-secondary text-decoration-none">HTTP 클라이언트 접속 정보</a>&nbsp;&nbsp;&nbsp;<a href="logout.jsp" class="link-secondary text-decoration-none">logout</a></div>
+			<div class="lead"><a href="logView.jsp" class="link-secondary text-decoration-none">HTTP 클라이언트 접속 정보</a>&nbsp;&nbsp;&nbsp;<a href="logout.jsp" class="link-secondary text-decoration-none">logout</a></div>
 		</div>
 		<div class="row mt-2">
 			<div class="display-3" style="font-family: 'Nanum Gothic', sans-serif;">HTTP 클라이언트 접속 정보</div>
@@ -60,7 +77,7 @@ $(function() {
 	const ECONN = $('#econn');
 	$('.person').on('click', function() {
 		$.ajax({
-            url: "<%=request.getContextPath()%>/LogsView",
+            url: "<%=request.getContextPath()%>/access",
 			method: "POST",
 			data: {name: "logsView", chart:$(this).attr('id')},
 			dataType: "json"
@@ -98,13 +115,13 @@ $(function() {
 				}
         	})
         })
-        .fail(function(xhr, status, errorThrown) {
-            alert("오류가 발생했습니다.");
-        })
+        //.fail(function(xhr, status, errorThrown) {
+		//	alert("오류가 발생했습니다.");
+        //})
     })
 	$('#time').on('click', function() {
 		$.ajax({
-            url: "<%=request.getContextPath()%>/LogsView",
+            url: "<%=request.getContextPath()%>/access",
 			method: "POST",
 			data: {chart:$(this).attr('id')},
 			dataType: "json"
@@ -170,13 +187,13 @@ $(function() {
 				}
 			})
         })
-        .fail(function(xhr, status, errorThrown) {
-            alert("오류가 발생했습니다.");
-        })
+        //.fail(function(xhr, status, errorThrown) {
+        //    alert("오류가 발생했습니다.");
+        //})
     })
 	$('#load').on('click', function() {
 		$.ajax({
-            url: "<%=request.getContextPath()%>/LogsView",
+            url: "<%=request.getContextPath()%>/access",
 			method: "POST",
 			data: {chart:$(this).attr('id')},
 			dataType: "json"
@@ -222,13 +239,13 @@ $(function() {
 				}
         	})
         })
-        .fail(function(xhr, status, errorThrown) {
-            alert("오류가 발생했습니다.");
-        })
+        //.fail(function(xhr, status, errorThrown) {
+        //    alert("오류가 발생했습니다.");
+        //})
 	})
 	$('#err').on('click', function() {
 		$.ajax({
-            url: "<%=request.getContextPath()%>/LogsView",
+            url: "<%=request.getContextPath()%>/access",
 			method: "POST",
 			data: {chart:$(this).attr('id')},
 			dataType: "json"
@@ -261,9 +278,9 @@ $(function() {
 				}
         	})
         })
-        .fail(function(xhr, status, errorThrown) {
-            alert("오류가 발생했습니다.");
-        })
+        //.fail(function(xhr, status, errorThrown) {
+        //    alert("오류가 발생했습니다.");
+        //})
 	})
 	$('#day').trigger("click");
 	$('#time').trigger("click");
