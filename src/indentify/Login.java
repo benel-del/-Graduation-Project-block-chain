@@ -32,8 +32,6 @@ public class Login extends HttpServlet {
 	}
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
 		request.setCharacterEncoding("UTF-8");
 		response.setContentType("text/html; charset=utf-8");
 		String id = request.getParameter("id");
@@ -53,7 +51,6 @@ public class Login extends HttpServlet {
 			else
 				out.print("NoID");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -82,9 +79,9 @@ public class Login extends HttpServlet {
 	}
 
 	public int isUser(String userID) {
-		String sql = "SELECT userID FROM VIEW_USER WHERE userID = ?;";
+		/*String sql = "SELECT userID FROM VIEW_USER WHERE userID = ?;";
 		try {
-			String dbURL = "jdbc:mysql://localhost:3306/center?";
+			String dbURL = "jdbc:mysql://localhost:3306/server?";
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn = DriverManager.getConnection(dbURL, "root", "Benel&Bende1");
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -97,6 +94,11 @@ public class Login extends HttpServlet {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		return -2; // db error
+		return -2; // db error*/
+		String[] user = {"user1", "user2"};
+		if(user[0].equals(userID) || user[1].equals(userID))
+			return 1;
+		else
+			return -1;
 	}
 }

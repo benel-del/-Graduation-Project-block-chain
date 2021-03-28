@@ -16,9 +16,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.Cipher;
-
-import blockChain.block;
-
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -38,6 +35,22 @@ import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
 
+class block {
+	private String sign;
+	private String content;
+	
+	public block(String sign, String content){
+		this.sign = sign;
+		this.content = content;
+	}
+
+	public String getSign() {
+		return sign;
+	}
+	public String getContent() {
+		return content;
+	}
+}
 class Sockets extends Thread {
 	Socket client;
 	Connection conn;
@@ -170,7 +183,7 @@ public class Server {
 			insertFile2(fileNameOfPath[i]);
 		}
 		
-		System.out.println("********** update **********");
+		System.out.println("***************** update *****************");
 		int sleepSec = 60;
 		final ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
 		exec.scheduleAtFixedRate(new Runnable(){
@@ -193,6 +206,7 @@ public class Server {
 			}
 		}, 0, sleepSec, TimeUnit.SECONDS);
 		
+
 		ServerSocket server, server2;
 		try {
 			server = new ServerSocket(6009);
@@ -210,9 +224,11 @@ public class Server {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	
 	}
 
 	static private int insertFile(String file) {
+		// 3O 23 23:55 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-03-23.txt
 		// file: 2O 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
 		System.out.println(getTime() + "CREATE NEW TABLE - " + file);
 		String[] str = file.split(" ");
@@ -222,7 +238,7 @@ public class Server {
 		int index = files.size();
 		files.add(str2[6]);
 		chain.add(new ArrayList<block>());
-		chain.get(index).add(new block("START", file+"\n"));
+		chain.get(index).add(new block("START", name+"\n"));
 		String sql = "INSERT INTO LOG(f_name, real_name, location, last_update_time) VALUES(?, ?, ?, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -246,7 +262,6 @@ public class Server {
 			sql = "GRANT select ON " + name + " TO user2@localhost";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.executeUpdate();
-	
 			return 1;
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -258,12 +273,12 @@ public class Server {
 		// file: /usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/localhost_access_log.2021-02-27.txt
 		System.out.println(getTime() + "CREATE NEW TABLE - " + file);
 		String[] str = file.split("/");
+		String name = tableNaming(str[8]);
 		
 		int index = files.size();
 		files.add(str[8]);
 		chain.add(new ArrayList<block>());
-		chain.get(index).add(new block("START", file+"\n"));
-		String name = tableNaming(str[8]);
+		chain.get(index).add(new block("START", name+"\n"));
 		int last = readForFetch(str[8]);
 		String sql = "INSERT INTO LOG(f_name, real_name, location, last_read_line) VALUES(?, ?, ?, ?);";
 		try {
@@ -343,6 +358,7 @@ public class Server {
 				try {
 					String sign = sign(index);
 					chain.get(index).add(new block(sign, tmp));
+					System.out.println("waiting user access...");
 					addViewCand(name, tmp, sign, line.size()-1, str2[6], chain.get(index).size()-1);
 				} catch(Exception e) {
 					e.printStackTrace();
@@ -469,7 +485,7 @@ public class Server {
 
 	static private ArrayList<String> getUpdateList(){
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/update.txt";
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/files.txt";
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -587,7 +603,7 @@ public class Server {
 				"CREATE TABLE USER(userID varchar(200) primary key, userPW varchar(200) not null);",
 				"CREATE TABLE LOG(f_name varchar(200) primary key, real_name varchar(200) not null, location varchar(200) not null, last_update_time varchar(20) not null, last_read_line int not null default -1);",
 				"CREATE TABLE RSA_KEY(publicKey varchar(400), privateKey varchar(1650));",
-				"CREATE TABLE CAND(no int auto_crement, f_name varchar(200), content text, sign varchar(350), set_line int, fetch_name varchar(200));",
+				"CREATE TABLE CAND(no int primary key auto_increment, f_name varchar(200), content text, sign varchar(350), set_line int, fetch_name varchar(200), position int);",
 				"CREATE TABLE VERIFY(no int not null, f_name varchar(200), userID varchar(200) not null, answer varchar(50) not null);",
 				"CREATE VIEW VIEW_LOG as select f_name from LOG;",
 				"CREATE VIEW VIEW_KEY as select publicKey from RSA_KEY;",
@@ -607,21 +623,18 @@ public class Server {
 			sql = "CREATE DATABASE server;";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.executeUpdate();
-			sql = "GRANT create, select, insert, update, delete, drop, grant option ON server.* TO server@localhost;";
-			pstmt = conn.prepareStatement(sql);
-			pstmt.executeUpdate();
-			
+
 			// CREATE server table, view
 			for(int i = 0; i < server.length; i++) {
 				pstmt = conn.prepareStatement(server[i]);
 				pstmt.executeUpdate();
 			}
 			// INSERT user account
-			for(int i = 1; i < user.length; i++) {
+			for(int i = 0; i < user.length; i++) {
 				sql = "INSERT INTO USER VALUES(?, ?);";
 				pstmt = conn.prepareStatement(sql);
 				pstmt.setString(1, user[i]);
-				pstmt.setString(2, pw[i-1]);
+				pstmt.setString(2, pw[i]);
 				pstmt.executeUpdate();
 			}
 			// INSERT rsa key

@@ -87,9 +87,6 @@
 		<div class="col-sm-5 left">
 			<textarea class="form-control" id="original" name="original" rows="20" readonly></textarea>
 		</div>
-		<div class="col-sm-2 d-flex justify-content-center align-items-center">
-			<button type="button" id="action">>></button>
-		</div>
 		<div class="col-sm-5 right">
 			<textarea class="form-control" id="result" rows="20" readonly></textarea>
 		</div>
@@ -134,6 +131,7 @@
                 		for(int i = 0; i < name.length; i++)
                 			value[i] = (String) session.getAttribute(name[i]);
                 		%>
+                		document.getElementById("upload").disabled = 'disabled';
                 		document.getElementById('stateUpload').value = "File name: <%=value[0]%>, file size: <%=value[1]%>";
                 		<%
                 		int index = 0;

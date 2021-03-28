@@ -200,13 +200,13 @@ public class UserServer extends HttpServlet {
 		ArrayList<block> local = readForFetch(file);
 		ArrayList<block> b = chain.get(index);
 		for(int i = 1; i < b.size(); i++) {
-			if(i >= local.size()) {	// 검증했던 블록이 로그아웃 이후로 추가된 것
+			if(i >= local.size()) {	// 寃�利앺뻽�뜕 釉붾줉�씠 濡쒓렇�븘�썐 �씠�썑濡� 異붽��맂 寃�
 				writeForFetch(file);
 				return;
 			}
 			else if(b.get(i).getState().equals("SERVER Verification error"))
 				continue;
-			else if(local.get(i).getState().equals("Verification error")){	// local 신뢰성 잃음
+			else if(local.get(i).getState().equals("Verification error")){	// local �떊猶곗꽦 �엪�쓬
 				chain.get(index).get(i).setState("LOCAL Verification error");
 				writeForFetch(file);
 				return;
@@ -497,7 +497,7 @@ public class UserServer extends HttpServlet {
 	private JSONObject countConnTime() throws Exception {
 		// 0:0:0:0:0:0:0:1|127.0.0.1|11157|HTTP/1.1|GET|[19/Mar/2021:17:13:51 +0900]|200|-|/
 		Calendar cal = Calendar.getInstance();
-		int recentD = calget(Calendar.DAY_OF_MONTH);
+		int recentD = cal.get(Calendar.DAY_OF_MONTH);
 		int recentM = cal.get(Calendar.MONTH)+1;
 		int recentY = cal.get(Calendar.YEAR);
 		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs/");
@@ -508,7 +508,7 @@ public class UserServer extends HttpServlet {
 		String line = ""; // 
 		String[] temp; // for log line split
 		for (int i = 0; i < filelist.size(); i++) {
-		    if (filelist.get(i).equals("log_"+recentY+String.format("%02d", recentM)+recentD) {
+		    if (filelist.get(i).equals("log_"+recentY+String.format("%02d", recentM)+recentD)) {
 				HashSet<String> hs = new HashSet<String>();
 				ArrayList<String> f = getLog(filelist.get(i));
 				for (int j=0; j<f.size(); j++) {
