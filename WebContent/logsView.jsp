@@ -62,7 +62,7 @@ $(function() {
 		$.ajax({
             url: "<%=request.getContextPath()%>/LogsView",
 			method: "POST",
-			data: {chart:$(this).attr('id')},
+			data: {name: "logsView", chart:$(this).attr('id')},
 			dataType: "json"
 		})
         .done(function(json) {
