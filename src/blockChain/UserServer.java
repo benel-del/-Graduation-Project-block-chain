@@ -200,13 +200,13 @@ public class UserServer extends HttpServlet {
 		ArrayList<block> local = readForFetch(file);
 		ArrayList<block> b = chain.get(index);
 		for(int i = 1; i < b.size(); i++) {
-			if(i >= local.size()) {	// ∞À¡ı«ﬂ¥¯ ∫Ì∑œ¿Ã ∑Œ±◊æ∆øÙ ¿Ã»ƒ∑Œ √ﬂ∞°µ» ∞Õ
+			if(i >= local.size()) {	// Í≤ÄÏ¶ùÌñàÎçò Î∏îÎ°ùÏù¥ Î°úÍ∑∏ÏïÑÏõÉ Ïù¥ÌõÑÎ°ú Ï∂îÍ∞ÄÎêú Í≤É
 				writeForFetch(file);
 				return;
 			}
 			else if(b.get(i).getState().equals("SERVER Verification error"))
 				continue;
-			else if(local.get(i).getState().equals("Verification error")){	// local Ω≈∑⁄º∫ ¿“¿Ω
+			else if(local.get(i).getState().equals("Verification error")){	// local Ïã†Î¢∞ÏÑ± ÏûÉÏùå
 				chain.get(index).get(i).setState("LOCAL Verification error");
 				writeForFetch(file);
 				return;
@@ -497,6 +497,9 @@ public class UserServer extends HttpServlet {
 	private JSONObject countConnTime() throws Exception {
 		// 0:0:0:0:0:0:0:1|127.0.0.1|11157|HTTP/1.1|GET|[19/Mar/2021:17:13:51 +0900]|200|-|/
 		Calendar cal = Calendar.getInstance();
+		int recentD = calget(Calendar.DAY_OF_MONTH);
+		int recentM = cal.get(Calendar.MONTH)+1;
+		int recentY = cal.get(Calendar.YEAR);
 		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs/");
 		//String[] filenames = dir.list();
 		ArrayList<String> filelist = getList();
@@ -505,20 +508,27 @@ public class UserServer extends HttpServlet {
 		String line = ""; // 
 		String[] temp; // for log line split
 		for (int i = 0; i < filelist.size(); i++) {
-		    if (filelist.get(i).equals("log_20210326")) {
+		    if (filelist.get(i).equals("log_"+recentY+String.format("%02d", recentM)+recentD) {
 				HashSet<String> hs = new HashSet<String>();
-				FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/localhost_access_log."+cal.get(Calendar.YEAR)+"-"+String.format("%02d", cal.get(Calendar.MONTH) + 1)+"-"+cal.get(Calendar.DAY_OF_MONTH)+".txt"); // ADD
-				BufferedReader br = new BufferedReader(filerd); // ADD
-				while ((line=br.readLine())!=null) {
-					if (line.contains("logView.jsp")) {
-						temp = line.split("\\:");
+				ArrayList<String> f = getLog(filelist.get(i));
+				for (int j=0; j<f.size(); j++) {
+					if (f.get(i).contains("logView.jsp")) {
+						temp = f.get(i).split("\\:");
 						countTime[Integer.parseInt(temp[8])]++;
 					}
 				}
+				//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/localhost_access_log."+recentY+"-"+String.format("%02d", recentM)+"-"+recentD+".txt"); // ADD
+				//BufferedReader br = new BufferedReader(filerd); // ADD
+				//while ((line=br.readLine())!=null) {
+				//	if (line.contains("logView.jsp")) {
+				//		temp = line.split("\\:");
+				//		countTime[Integer.parseInt(temp[8])]++;
+				//	}
+				//}
 		    }
 		}
-		countTime[1]+=countTime[0];
-		for (int i=1; i<24; i++) {
+		countTime[1]+=countTime[0]; // 0h is contained 0-2h
+		for (int i=1; i<24; i++) { // divide by 3 hour e.g. 0-2h, 3-5h
 			if (i%3==2) jsObj.put((i/3)+"", countTime[i]);
 			else countTime[i+1] += countTime[i];
 		}
