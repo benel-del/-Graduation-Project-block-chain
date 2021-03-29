@@ -107,7 +107,7 @@ class Sockets extends Thread {
 	private int userCheck(String userID, String userPW) {
 		String sql = "SELECT userPW FROM USER WHERE userID = ?;";
 		try {
-			String dbURL = "jdbc:mysql://localhost:3306/server?";
+			String dbURL = "jdbc:mysql://localhost:3306/server?autoReconnection=true";
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn = DriverManager.getConnection(dbURL, "root", "Benel&Bende1");
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -143,7 +143,7 @@ public class Server {
 		init();
 		
 		try {
-			String dbURL = "jdbc:mysql://localhost:3306/server?";
+			String dbURL = "jdbc:mysql://localhost:3306/server?autoReconnection=true";
 			String dbID = "root";
 			String dbPassword = "Benel&Bende1";
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -183,7 +183,7 @@ public class Server {
 
 		ServerSocket server;
 		try {
-			server = new ServerSocket(5945);
+			server = new ServerSocket(5950);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
@@ -659,7 +659,7 @@ public class Server {
 		String sql = "";
 		PreparedStatement pstmt = null;
 		try {
-			String dbURL = "jdbc:mysql://localhost:3306?";
+			String dbURL = "jdbc:mysql://localhost:3306?autoReconnection=true";
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			Connection conn = DriverManager.getConnection(dbURL, "root", "Benel&Bende1");
 			

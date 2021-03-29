@@ -33,7 +33,7 @@ public class UserServer {
 		this.userID = userID;
 		this.userPW = userPW;
 		
-		String dbURL = "jdbc:mysql://localhost:3306/server?";
+		String dbURL = "jdbc:mysql://localhost:3306/server?autoReconnection=true";
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn = DriverManager.getConnection(dbURL, userID, userPW);
@@ -51,7 +51,7 @@ public class UserServer {
 	
 	public void connect() {
 		try {
-			Socket soc = new Socket("localhost", 5945);
+			Socket soc = new Socket("localhost", 5950);
 
 			//BufferedReader brs = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
@@ -332,9 +332,17 @@ public class UserServer {
 		int index = getIndex(file);
 		if(index == -1)
 			return null;
+		ArrayList<block> b = chain.get(index);
+		for(int i = 1; i < b.size(); i++) {
+			String str[] = b.get(i).getContent().split("\n");
+			String state = b.get(i).getState();
+			for(int j = 0; j < str.length; j++) {
+				System.out.println(state + " : " + str[j]);
+			}
+		}
 		return chain.get(index);
 	}
-	public ArrayList<String> getLog(String file){
+	public ArrayList<String> getLog(String file){	// logsView
 		int index = getIndex(file);
 		if(index == -1)
 			return null;

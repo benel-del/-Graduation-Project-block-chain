@@ -13,7 +13,7 @@
 	if(session.getAttribute("userID") != null){	// 로그인 한 사람 접근 불가
 		PrintWriter script=response.getWriter();
 		script.println("<script>");
-		script.println("location.href = 'logsView.jsp'");
+		script.println("location.href = 'logView.jsp'");
 		script.println("</script>");
 	}
 %>     
