@@ -1,3 +1,2 @@
 #!/bin/bash
-find /usr/local/lib/apache-tomcat-9.0.43/logs -name "localhost_access_log.*" -mmin -1 -ls | awk '{print $11}' > /usr/local/lib/apache-tomcat-9.0.43/webapps/block/update.txt
 find /usr/local/lib/apache-tomcat-9.0.43/logs -name "localhost_access_log.*" -ls | awk '{print $11}' > /usr/local/lib/apache-tomcat-9.0.43/webapps/block/files.txt

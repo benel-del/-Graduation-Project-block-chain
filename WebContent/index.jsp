@@ -64,7 +64,7 @@
 	</div>
 	<div class="row mt-4">
 		<div class="col-sm-2 left">
-			<button type="button" class="btn btn-primary btn" id="upload">UPLOAD</button>
+			<button type="button" class="btn btn-primary btn upload" id="upload">UPLOAD</button>
 		</div>
 		<div class="col-sm-3 left">
 			<input type="text" id="stateUpload" class="form-control input-lg loadState" readonly>
@@ -133,7 +133,7 @@
                 		%>
                 		for(var i = 0; i < upload.length; i++)
                 			upload.item(i).disabled = 'disabled';
-                		document.getElementById('stateUpload').value = "File name: <%=value[0]%>, file size: <%=value[1]%>";
+                		document.getElementById('stateUpload').value = "File: <%=value[0]%>, size: <%=value[1]%>";
                 		<%
                 		int index = 0;
                 		String tmp = "";
@@ -163,18 +163,19 @@
 		});
 
 		$('#download').on('click', function() {
-	    	$("#form").ajax({
+	    	$.ajax({
 				url: "<%=request.getContextPath()%>/fileDownload",
 	            traditional:true,
                 type: "POST",
                 data: {
-                	file: <%=value[2]%>
+                	file: "<%=value[2]%>"
                 },
-                dataType:"text",
-				beforeSubmit: function(data, form, option){
-                	
-                },
-	        }).submit();
+                dataType:"text"
+	        })
+	        .done(function(data){
+        		<%session.invalidate();%>
+        		window.location.reload();
+	        });
 		});
 	});
 
@@ -190,7 +191,7 @@
 				isFile = true;
 			}
 			else{
-				document.getElementById('state').value = "File: " + file.name + ": Not a valid file type..";
+				document.getElementById('state').value = "File: Not a valid file type..";
 				isFile = false;
 			}
 		}
@@ -241,7 +242,8 @@
 			document.getElementById("format").style.visibility = 'hidden';
 	}
 	function init(){
-		document.getElementById("file").value = null;
+		$("#file").val("");
+		$("#state").val("No files currently selected for upload");
 		document.getElementById('download').disabled = 'disabled';
 		document.getElementById("stateUpload").value = "";
 		document.getElementById("stateDownload").value = "";
@@ -251,12 +253,13 @@
 		<%
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile";
 		String[] fileNameOfPath = new File(path).list();
-		for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
-			System.out.println("delete:" + fileNameOfPath[i]);
-			new File(path + "/" + fileNameOfPath[i]).delete();
+		if(fileNameOfPath!=null){
+			for(int i = 0; i < fileNameOfPath.length; i++)
+				new File(path + "/" + fileNameOfPath[i]).delete();
 		}
-		for(int i = 0; i < name.length; i++)
-			session.removeAttribute(name[i]);
+		//for(int i = 0; i < name.length; i++)
+		//	session.removeAttribute(name[i]);
+		
 		%>
 		
 		

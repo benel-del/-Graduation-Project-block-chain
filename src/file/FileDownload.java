@@ -1,5 +1,7 @@
 package file;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,39 +32,38 @@ public class FileDownload extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		response.setContentType("text/html; charset=utf-8");
 		try {
-			//out.clear();
-			//out = pageContext.pushBody();
-			
 			int maxSize = 1024 *1024 *10;
 			String file = request.getParameter("file");
 			String sDownPath = getServletContext().getRealPath("/uploadFile");
 			String sFilePath = sDownPath + "/" + file;
-			
-			File outputFile = new File(sFilePath);
-			FileInputStream in = new FileInputStream(outputFile);
-			byte[] temp = new byte[maxSize];
-			
+			File outFile = new File(sFilePath);
+			String userAgent = request.getHeader("User-Agent");
+
+			String sEncoding = new String(file.getBytes("utf-8"), "8859_1");
+			sEncoding = URLEncoder.encode(sEncoding, "utf-8");
 			String sMimeType = getServletContext().getMimeType(sFilePath);
 			if(sMimeType == null)
 				sMimeType = "application.octec-stream";
 			response.setContentType(sMimeType);
+			//response.setHeader("Content-Disposition", "attachment;filename="+sEncoding);
+			response.setHeader("Content-Disposition","attachment;filename=\"" +sEncoding+"\";");
 			
-			String sEncoding = new String(file.getBytes("utf-8"), "8859_1");
-			sEncoding = URLEncoder.encode(sEncoding, "utf-8");
+			FileInputStream fis = new FileInputStream(outFile);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			ServletOutputStream sos = response.getOutputStream();
+			BufferedOutputStream bos = new BufferedOutputStream(sos);
 			
-			response.setHeader("Content-Disposition", "attachment;filename="+sEncoding);
-			ServletOutputStream out2 = response.getOutputStream();
-			
+			byte[] temp = new byte[maxSize];
 			int numRead = 0;
-			while((numRead = in.read(temp, 0, temp.length)) != -1)
-				out2.write(temp, 0, numRead);
-				
-			out2.flush();
-			out2.close();
-			in.close();	
-			
-			HttpSession session = request.getSession(true);
-			session.setAttribute("exit", 1);
+			while((numRead = bis.read(temp))!=-1){
+				bos.write(temp, 0, numRead);
+				bos.flush();
+			}
+			  
+			if(bos != null) bos.close();
+			if(bis != null) bis.close();
+			if(sos != null) sos.close();
+			if(fis != null) fis.close();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

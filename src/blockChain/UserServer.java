@@ -128,18 +128,18 @@ public class UserServer {
 		return null;
 	}
 
-	void compare(String file) {	// 2) compare server blockchain with disk blockchain
+	void compare(String file) {	// 2) compare server blockchain with local(disk text_file)
 		int index = getIndex(file);
 		ArrayList<block> local = readForFetch(file);
 		ArrayList<block> b = chain.get(index);
 		for(int i = 1; i < b.size(); i++) {
-			if(i >= local.size()) {	// 寃�利앺뻽�뜕 釉붾줉�씠 濡쒓렇�븘�썐 �씠�썑濡� 異붽��맂 寃�
+			if(i >= local.size()) {	// when user logout, other user verify about that user verified
 				writeForFetch(file);
 				return;
 			}
 			else if(b.get(i).getState().equals("SERVER Verification error"))
 				continue;
-			else if(local.get(i).getState().equals("Verification error")){	// local �떊猶곗꽦 �엪�쓬
+			else if(local.get(i).getState().equals("Verification error")){	// local(disk text_file) error
 				chain.get(index).get(i).setState("LOCAL Verification error");
 				writeForFetch(file);
 				return;
@@ -187,7 +187,7 @@ public class UserServer {
 		}
 	}
 
-	ArrayList<block> readForFetch(String filename) {		// local blockchain >> code
+	ArrayList<block> readForFetch(String filename) {		// local(disk text_file) >> code
 		String str1 = "";
 		String str2 = "";
 		boolean sign = true;
@@ -229,11 +229,11 @@ public class UserServer {
 		return b;
 	}
 	
-	void writeForFetch(String filename) {	// code >> local blockchain
+	void writeForFetch(String filename) {	// code >> local(disk text_file)
 		int index = getIndex(filename);
 		ArrayList<block> b = chain.get(index);
 		System.out.println("WRITE file " + filename);
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/" + userID +" File/" + filename;
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/" + userID +"File/" + filename;
 		try {
 			File file = new File(path);
 			if(!file.exists())
@@ -253,13 +253,14 @@ public class UserServer {
 	
 	void fetchContent(String[] str) {	// 4) add new block
 		// str: no, f_name
-		String sql = "SELECT no, sign, content FROM server." + str[1] + " ORDER BY no DESC LIMIT 1;";	// 
+		String sql = "SELECT no, sign, content FROM server." + str[1] + " ORDER BY no DESC LIMIT 1;";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
 				int index = getIndex(str[1]);
 				if(index == -1) {
+					index = files.size();
 					chain.add(new ArrayList<block>());
 					chain.get(chain.size()-1).add(new block("START", str[1] + "\n"));	// genesis block
 					files.add(str[1]);
@@ -325,13 +326,13 @@ public class UserServer {
 	public ArrayList<String> getList(){
 		return files;
 	}
-	public ArrayList<block> getChain(String file){	// logView
+	public ArrayList<block> getChain(String file){
 		int index = getIndex(file);
 		if(index == -1)
 			return null;
 		return chain.get(index);
 	}
-	public ArrayList<String> getLog(String file){	// logsView
+	public ArrayList<String> getLog(String file){
 		int index = getIndex(file);
 		if(index == -1)
 			return null;

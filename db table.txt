@@ -1,75 +1,24 @@
-# file upload/download table
 
-drop table file;
-create table file(
-	no int auto_increment PRIMARY KEY,
-	originalName varchar(200),
-	resultName varchar(200) default 0,
-	password varchar(200),
-	originalFileSize varchar(100),
-	resultFileSize varchar(100) default 0,
-	fileOption varchar(20)
-);
+CREATE DATABASE server;
+USE server;
 
-DROP DATABASE center;
-CREATE DATABASE center;
-USE center;
+CREATE TABLE USER(userID varchar(200) primary key, userPW varchar(200) not null);
+CREATE TABLE LOG(f_name varchar(200) primary key, real_name varchar(200), location varchar(200) not null, last_update_time varchar(20), last_read_line int default -1);
+CREATE TABLE RSA_KEY(publicKey varchar(400), privateKey varchar(1650));
+CREATE TABLE CAND(no int primary key auto_increment, f_name varchar(200), content text, sign varchar(350), set_line int, fetch_name varchar(200), position int);
+CREATE TABLE VERIFY(no int not null, f_name varchar(200), userID varchar(200) not null, answer varchar(50) not null);
+CREATE VIEW VIEW_LOG as select f_name from LOG;
+CREATE VIEW VIEW_KEY as select publicKey from RSA_KEY;
+CREATE VIEW VIEW_CAND as select no, f_name, sign from CAND;
 
-create table USER(
-	userID varchar(200) primary key,
-	userPW varchar(200) not null,
-	publicKey varchar(200)
-);
+INSERT INTO USER(userID, userPW) VALUES("user1", "Admin1!");
+INSERT INTO USER(userID, userPW) VALUES("user2", "Admin2!");
 
-create view VIEW_USER as select userID, publicKey from USER;
-
-create table LOG(
-	f_name varchar(200) primary key,
-	real_name varchar(200) not null,
-	location varchar(200) not null,
-	last_update_time varchar(20) not null,
-	last_read_line int not null default -1
-);
-
-create view VIEW_LOG as select f_name from LOG;
-
-insert into center.USER(userID, userPW) values("user1", "Admin1!");
-insert into center.USER(userID, userPW) values("user2", "Admin2!");
-
-GRANT select ON center.VIEW_LOG TO user1@localhost;
-GRANT select ON center.VIEW_LOG TO user2@localhost;
-GRANT select ON center.VIEW_USER TO user1@localhost;
-GRANT select ON center.VIEW_USER TO user2@localhost;
-
-#database user1
-
-use user1;
-create table user1_BlockChain(
-	f_name varchar(200) primary key,
-	block_size int not null default 0
-);
-create table user1_RSAKey(
-	publicKey varchar(200),
-	privateKey varchar(200)
-);
-
-
-#database user2
-use user2;
-create table user2_BlockChain(
-	f_name varchar(200) primary key,
-	block_size int not null default 0
-);
-create table user2_RSAKey(
-	publicKey varchar(200),
-	privateKey varchar(200)
-);
-
-
-# java code
-create table userID_local_access_0000(
-	no int not null default 0,
-	sign varchar(300) not null,
-	content  text not null,
-	state varchar(10)
-);
+GRANT select ON server.VIEW_LOG TO user1@localhost;
+GRANT select ON server.VIEW_LOG TO user2@localhost;
+GRANT select ON server.VIEW_KEY TO user1@localhost;
+GRANT select ON server.VIEW_KEY TO user2@localhost;
+GRANT select ON server.VIEW_CAND TO user1@localhost;
+GRANT select ON server.VIEW_CAND TO user2@localhost;
+GRANT insert, select ON server.VERIFY TO user1@localhost;
+GRANT insert, select ON server.VERIFY TO user2@localhost;

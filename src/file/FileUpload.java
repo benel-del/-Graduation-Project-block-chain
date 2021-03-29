@@ -66,8 +66,7 @@ public class FileUpload extends HttpServlet {
 					String newPath = uploadPath + "/" + newName;
 					File resultFile = new File(newPath);
 					resultFile.createNewFile();
-					System.out.println(newPath);
-					FileWriter fw = new FileWriter(newPath);
+					FileWriter fw = new FileWriter(resultFile);
 				 
 					int index = 0;
 					String tmp = "";
@@ -90,8 +89,6 @@ public class FileUpload extends HttpServlet {
 					session.setAttribute("newFile", newName);
 					session.setAttribute("newSize", f.fileSize(resultFile.length()));
 					session.setAttribute("option", option);
-					//db upload
-					//f.insert(fileName, newName, pw, f.fileSize(fileSize), f.fileSize(resultFile.length()), option);
 				}
 			}
 			

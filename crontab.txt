@@ -1,5 +1,0 @@
-find /usr/local/lib/apache-tomcat-9.0.43/logs -name "catalina.*" -mmin -2 -ls > /home/centos/eclipse-workspace/block/update.txt
-find /usr/local/lib/apache-tomcat-9.0.43/logs -name "localhost_access_log.*" -mmin -2 -ls >> /home/centos/eclipse-workspace/block/update.txt
-
-find /usr/local/lib/apache-tomcat-9.0.43/logs -name "catalina.*" -ls > /home/centos/eclipse-workspace/block/files.txt
-find /usr/local/lib/apache-tomcat-9.0.43/logs -name "localhost_access_log.*" -ls >> /home/centos/eclipse-workspace/block/files.txt

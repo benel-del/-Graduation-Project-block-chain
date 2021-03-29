@@ -159,7 +159,7 @@ public class Server {
 		for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
 			if(fileNameOfPath[i].equals("log.txt"))
 				readTableInfo(fileNameOfPath[i]);
-			else
+			else if(!fileNameOfPath[i].equals("key.txt"))
 				insertFile2(fileNameOfPath[i]);
 		}
 		
@@ -237,16 +237,15 @@ public class Server {
 	}
 	
 	static private int insertFile2(String file) {
-		// file: /usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile/localhost_access_log.2021-02-27.txt
+		// file: localhost_access_log.2021-02-27.txt
 		System.out.println(getTime() + "CREATE NEW TABLE - " + file);
-		String[] str = file.split("/");
-		String name = tableNaming(str[8]);
+		String name = tableNaming(file);
 		
 		int index = files.size();
-		files.add(str[8]);
+		files.add(file);
 		chain.add(new ArrayList<block>());
 		chain.get(index).add(new block("START", name+"\n"));
-		readForFetch(str[8]);
+		readForFetch(file);
 		try {
 			String sql = "CREATE TABLE " + name + " (content text not null, no int PRIMARY KEY auto_increment, sign varchar(350) not null);";
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -259,15 +258,14 @@ public class Server {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.executeUpdate();
 			
-			dbUpload(str[8]);
+			dbUpload(file);
 			return 1;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		return -1;	// db error
 	}
-	
-	
+		
 	static private int readTableInfo(String file) {
 		// file: log.txt
 		System.out.println(getTime() + "fetch LOG table - " + file);
@@ -275,7 +273,7 @@ public class Server {
 			ArrayList<String> line = readInfo();
 			for(int i = 0; i < line.size(); i++) {
 				String[] info = line.get(i).split(" ");
-				String sql = "INSERT INTO LOG(f_name, real_name, location, last_access_time, last_read_line) VALUES(?, ?, ?, ?, ?);";
+				String sql = "INSERT INTO LOG(f_name, real_name, location, last_update_time, last_read_line) VALUES(?, ?, ?, ?, ?);";
 				PreparedStatement pstmt = conn.prepareStatement(sql);
 				pstmt.setString(1, info[0]);
 				pstmt.setString(2, info[1]);
@@ -308,9 +306,7 @@ public class Server {
 		}
 		return Line;
 	}
-	
-
-	
+		
 	static private void dbUpload(String file) {
 		int index = getIndex(file);
 		ArrayList<block> b = chain.get(index);
@@ -688,12 +684,32 @@ public class Server {
 				pstmt.executeUpdate();
 			}
 			// INSERT rsa key
-			key = setKey();
+			String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile/key.txt";
+			try {
+				File file = new File(path);
+				if(!file.exists()) {
+					file.createNewFile();
+					FileWriter fw = new FileWriter(file);
+					key = setKey();
+					fw.write(key[0] + "\n" + key[1]);
+					fw.close();
+				}
+				else {
+					FileReader fileReader = new FileReader(file);
+					BufferedReader bufReader = new BufferedReader(fileReader);
+					key[0] = bufReader.readLine();
+					key[1] = bufReader.readLine();
+					bufReader.close();
+				}
+			}catch(IOException e) {
+				System.out.println(e);
+			}
 			sql = "INSERT INTO RSA_KEY VALUES(?, ?)";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, key[0]);
 			pstmt.setString(2, key[1]);
 			pstmt.executeUpdate();
+			
 			
 			// GRANT select on view to user
 			for(int i = 0; i < user.length; i++) {
