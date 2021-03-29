@@ -52,31 +52,10 @@ public class Login extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-	private int userCheck(String userID, String userPW) {
-		String sql = "SELECT userPW FROM USER WHERE userID = ?;";
-		try {
-			String dbURL = "jdbc:mysql://localhost:3306/server?";
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			Connection conn = DriverManager.getConnection(dbURL, "root", "Benel&Bende1");
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, userID);
-			ResultSet rs = pstmt.executeQuery();
-			if(rs.next()) {
-				if(rs.getString(1).equals(userPW))
-					return 1;
-				else
-					return -1;
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return -2;	// db error
-	}
-	
 
 	public int connect(String userID, String userPW) {
 		try {
-			Socket soc = new Socket("localhost", 5941);
+			Socket soc = new Socket("localhost", 5935);
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());

@@ -52,7 +52,7 @@ public class UserServer {
 	
 	public void connect() {
 		try {
-			Socket soc = new Socket("localhost", 5941);
+			Socket soc = new Socket("localhost", 5935);
 
 			//BufferedReader brs = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
@@ -238,7 +238,7 @@ public class UserServer {
 			File file = new File(path);
 			if(!file.exists())
 				file.createNewFile();
-			FileWriter fw = new FileWriter(filename);
+			FileWriter fw = new FileWriter(file);
 			
 			String line = "";
 			for(int i = 1; i < b.size(); i++) {

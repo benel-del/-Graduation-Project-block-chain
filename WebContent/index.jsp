@@ -23,11 +23,6 @@
 </head>
 <%
 	String[] name = {"originalFile", "originalSize", "newFile", "newSize", "option"};
-	if(session.getAttribute("exit") != null){
-		for(int i = 0; i < name.length; i++)
-			session.removeAttribute(name[i]);
-		session.removeAttribute("exit");
-	}
 	String[] value = new String[5];
 	FileDAO f = new FileDAO();
 %>
@@ -118,8 +113,12 @@
                 type: "POST",
                 dataType:"text",
                 beforeSubmit: function(data, form, option){
-                	if($('#file').val == ""){
-                		alert("파일을 선택해주세요.");
+                	if($('#file').val() == ""){
+                		alert("select file");
+                		return false;
+                	}
+                	if($('#password').val().length < 5){
+                		alert("at least 5 character");
                 		return false;
                 	}
                 },
@@ -145,7 +144,7 @@
             			<%
             			}
             			%>
-            			document.getElementById('download').disabled = 'disabled';
+            			document.getElementById('download').disabled = false;
             			document.getElementById('stateDownload').value = "File: <%=value[2]%>, size: <%=value[3]%>";
             			<%
             			index = 0;
@@ -178,15 +177,6 @@
 		});
 	});
 
-	<%
-	String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile";
-	String[] fileNameOfPath = new File(path).list();
-	for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
-		System.out.println("delete:" + fileNameOfPath[i]);
-		new File(path + "/" + fileNameOfPath[i]).delete();
-	}
-	%>
-	
 	inputF.addEventListener("change", (evt) => {
 		const file = evt.target.files[0];
 		if(file == null){
@@ -257,6 +247,19 @@
 		document.getElementById("stateDownload").value = "";
 		document.getElementById("original").value = "";
 		document.getElementById("result").value = "";
+		
+		<%
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile";
+		String[] fileNameOfPath = new File(path).list();
+		for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
+			System.out.println("delete:" + fileNameOfPath[i]);
+			new File(path + "/" + fileNameOfPath[i]).delete();
+		}
+		for(int i = 0; i < name.length; i++)
+			session.removeAttribute(name[i]);
+		%>
+		
+		
 	}
 	</script>
 </body>

@@ -183,7 +183,7 @@ public class Server {
 
 		ServerSocket server;
 		try {
-			server = new ServerSocket(5941);
+			server = new ServerSocket(5935);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
@@ -194,7 +194,6 @@ public class Server {
 		}
 	
 	}
-
 	static private int insertFile(String file) {
 		// 3O 23 23:55 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-03-23.txt
 		// file: 2O 27 18:42 /usr/local/lib/apache-tomcat-9.0.43/logs/localhost_access_log.2021-02-27.txt
@@ -309,27 +308,7 @@ public class Server {
 		return Line;
 	}
 	
-	static private void writeInfo() {
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/log.txt";
-		try {
-			File file = new File(path);
-			if(!file.exists())
-				file.createNewFile();
-			FileWriter fw = new FileWriter("log.txt");
-			
-			String line = "";
-			String sql = "SELECT * FROM LOG;";	// f_name, real_name, location, last_update_time, last_read_line
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			rs = pstmt.executeQuery();
-			while(rs.next()) {
-				line += rs.getString(1) + " " + rs.getString(2) + " " + rs.getString(3) + " " + rs.getString(4) + " " + rs.getInt(5) + "\n";
-			}
-			fw.write(line);
-			fw.close();
-		}catch(Exception e) {
-			System.out.println(e);
-		}
-	}
+
 	
 	
 	static private void dbUpload(String file) {
@@ -405,18 +384,19 @@ public class Server {
 	}
 	
 	static protected String verify(int no) {
-		String sql = "SELECT * FROM VERIFY WHERE no = ?;";	// no, f_name, userID, answer
+		String sql = "SELECT distinct userID, answer FROM VERIFY WHERE no = ?;";	// no, f_name, userID, answer
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, no);
 			rs = pstmt.executeQuery();
 			int count = 0;
-			String[] answer = new String[2];
+			String[] answer = new String[5];
 			while(rs.next()) {
-				answer[count++] = rs.getString(4);
+				answer[count++] = rs.getString(2);
 			}
 			if(count == 2) {
 				sql = "SELECT f_name, content, sign, set_line, fetch_name, position FROM CAND WHERE no = ?";
+				pstmt = conn.prepareStatement(sql);
 				pstmt.setInt(1, no);
 				rs = pstmt.executeQuery();
 				if(rs.next()) {
@@ -437,12 +417,12 @@ public class Server {
 					pstmt.setInt(1, no);
 					pstmt.executeUpdate();
 					
-					if(answer[0] == "Y" && answer[1] == "Y") {
+					if(answer[0].equals("Y") && answer[1].equals("Y")) {
 						insertLog(f_name, content, sign);
 						setLastLine(f_name, line);
 						writeInfo();
 						writeForFetch(fetch_name);
-						return f_name;
+						return "yes, in " + f_name;
 						//return 1;
 					}
 					else {
@@ -468,7 +448,7 @@ public class Server {
 	}
 
 	static private int insertLog(String file, String content, String sign) {
-		System.out.println(getTime() + "INSERT new log data INTO " + file);
+		//System.out.println(getTime() + "INSERT new log data INTO " + file);
 		String sql = "INSERT INTO " + file + "(content, sign) VALUES(?, ?);";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -609,13 +589,13 @@ public class Server {
 	static private void writeForFetch(String filename) {	// code >> local blockchain
 		int index = getIndex(filename);
 		ArrayList<block> b = chain.get(index);
-		System.out.println("downwrite " + filename);
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/" + filename;
+		System.out.println("[DownWrite] " + filename);
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile/" + filename;
 		try {
 			File file = new File(path);
 			if(!file.exists())
 				file.createNewFile();
-			FileWriter fw = new FileWriter(filename);
+			FileWriter fw = new FileWriter(file);
 			
 			String line = "";
 			for(int i = 1; i < b.size(); i++) {
@@ -624,6 +604,28 @@ public class Server {
 			fw.write(line);
 			fw.close();
 		}catch(IOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	static private void writeInfo() {
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile/log.txt";
+		try {
+			File file = new File(path);
+			if(!file.exists())
+				file.createNewFile();
+			FileWriter fw = new FileWriter(file);
+			
+			String line = "";
+			String sql = "SELECT * FROM LOG;";	// f_name, real_name, location, last_update_time, last_read_line
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				line += rs.getString(1) + " " + rs.getString(2) + " " + rs.getString(3) + " " + rs.getString(4) + " " + rs.getInt(5) + "\n";
+			}
+			fw.write(line);
+			fw.close();
+		}catch(Exception e) {
 			System.out.println(e);
 		}
 	}
