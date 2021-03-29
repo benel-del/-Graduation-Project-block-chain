@@ -52,7 +52,7 @@ public class UserServer {
 	
 	public void connect() {
 		try {
-			Socket soc = new Socket("localhost", 5935);
+			Socket soc = new Socket("localhost", 5937);
 
 			//BufferedReader brs = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
@@ -194,7 +194,7 @@ public class UserServer {
 		ArrayList<block> b = new ArrayList<>();
 		b.add(new block("START", filename+"\n"));
 		
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID +" File/" + filename;
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/" + userID +" File/" + filename;
 		try {
 			File file = new File(path);
 			if(file.exists()) {
@@ -233,7 +233,7 @@ public class UserServer {
 		int index = getIndex(filename);
 		ArrayList<block> b = chain.get(index);
 		System.out.println("WRITE file " + filename);
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID +" File/" + filename;
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/" + userID +" File/" + filename;
 		try {
 			File file = new File(path);
 			if(!file.exists())

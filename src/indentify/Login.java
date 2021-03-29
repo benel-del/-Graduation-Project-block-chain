@@ -55,7 +55,7 @@ public class Login extends HttpServlet {
 
 	public int connect(String userID, String userPW) {
 		try {
-			Socket soc = new Socket("localhost", 5935);
+			Socket soc = new Socket("localhost", 5937);
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());

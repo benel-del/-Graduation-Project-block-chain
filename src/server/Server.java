@@ -153,7 +153,7 @@ public class Server {
 		}	
 		
 		// local block chain file read
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile";
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile";
 		String[] fileNameOfPath = new File(path).list();
 		System.out.println("********** local file uploading **********");
 		for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
@@ -183,7 +183,7 @@ public class Server {
 
 		ServerSocket server;
 		try {
-			server = new ServerSocket(5935);
+			server = new ServerSocket(5937);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
@@ -237,7 +237,7 @@ public class Server {
 	}
 	
 	static private int insertFile2(String file) {
-		// file: /usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/localhost_access_log.2021-02-27.txt
+		// file: /usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile/localhost_access_log.2021-02-27.txt
 		System.out.println(getTime() + "CREATE NEW TABLE - " + file);
 		String[] str = file.split("/");
 		String name = tableNaming(str[8]);
@@ -267,6 +267,7 @@ public class Server {
 		return -1;	// db error
 	}
 	
+	
 	static private int readTableInfo(String file) {
 		// file: log.txt
 		System.out.println(getTime() + "fetch LOG table - " + file);
@@ -292,7 +293,7 @@ public class Server {
 	
 	static private ArrayList<String> readInfo(){
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/log.txt";
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile/log.txt";
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -309,7 +310,6 @@ public class Server {
 	}
 	
 
-	
 	
 	static private void dbUpload(String file) {
 		int index = getIndex(file);
@@ -560,7 +560,7 @@ public class Server {
 		String str1 = "";
 		String str2 = "";
 		boolean sign = true;
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/serverFile/" + filename;
+		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile/" + filename;
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
@@ -589,7 +589,7 @@ public class Server {
 	static private void writeForFetch(String filename) {	// code >> local blockchain
 		int index = getIndex(filename);
 		ArrayList<block> b = chain.get(index);
-		System.out.println("[DownWrite] " + filename);
+		//System.out.println("[DownWrite] " + filename);
 		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/serverFile/" + filename;
 		try {
 			File file = new File(path);

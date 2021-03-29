@@ -131,7 +131,8 @@
                 		for(int i = 0; i < name.length; i++)
                 			value[i] = (String) session.getAttribute(name[i]);
                 		%>
-                		document.getElementById("upload").disabled = 'disabled';
+                		for(var i = 0; i < upload.length; i++)
+                			upload.item(i).disabled = 'disabled';
                 		document.getElementById('stateUpload').value = "File name: <%=value[0]%>, file size: <%=value[1]%>";
                 		<%
                 		int index = 0;
@@ -170,9 +171,9 @@
                 	file: <%=value[2]%>
                 },
                 dataType:"text",
-                success: function(result){
+				beforeSubmit: function(data, form, option){
                 	
-                }
+                },
 	        }).submit();
 		});
 	});
@@ -241,7 +242,6 @@
 	}
 	function init(){
 		document.getElementById("file").value = null;
-		document.getElementById("upload").disabled = 'disabled';
 		document.getElementById('download').disabled = 'disabled';
 		document.getElementById("stateUpload").value = "";
 		document.getElementById("stateDownload").value = "";
