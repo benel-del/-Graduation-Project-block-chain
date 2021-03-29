@@ -27,7 +27,8 @@
 	if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
 		userID = (String) session.getAttribute("userID");
 		userPW = (String) session.getAttribute("userPW");
-		new UserServer(userID, userPW);
+		UserServer server = new UserServer(userID, userPW);
+		//server.connect();
 	}
 	else{
 		PrintWriter script = response.getWriter();

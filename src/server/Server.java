@@ -63,7 +63,22 @@ class Sockets extends Thread {
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			PrintWriter pw = new PrintWriter(client.getOutputStream());
 			
-			if(br.readLine().equals("login")) {
+			String str = br.readLine();
+			if(str.equals("verify")){
+				//pw.println("y");
+				while(true) {
+					int input = Integer.parseInt(br.readLine());
+					if(input == -1)
+						break;
+					System.out.print(getTime() + " CAN I UPLOAD RECORD["+input+"]? ");
+									
+					String result = Server.verify(input);
+					//pw.println(result);
+					System.out.println(result);
+				}
+				
+			}
+			else if(str.equals("login")) {
 				String userID = br.readLine();
 	            String userPW = br.readLine();
 
@@ -80,34 +95,15 @@ class Sockets extends Thread {
 	            	pw.println("no");
 	            	System.out.println("db error");
 	            }
-	            pw.flush();
+	            
+	            
 			}
-			else {
-				System.out.println(getTime() + " verify");
-				while(true) {
-					String input = br.readLine();	// (int)no
-					if(!input.equals("-1")) {
-						String result = Server.verify(Integer.parseInt(input));	
-						if(result != null)	// 검증 결과 확인
-							pw.println(result);
-						else
-							pw.println("no");
-					}
-					pw.println("no");
-				}
-				
-			}
+			pw.close();
+			client.close();
 		} catch (Exception e) {
             e.printStackTrace();
-        } finally {
-        	try {
-				client.close();
-			} catch (IOException e) {
-				System.out.println(getTime() + "Client close error");
-			}
         }
 	}
-	
 	private int userCheck(String userID, String userPW) {
 		String sql = "SELECT userPW FROM USER WHERE userID = ?;";
 		try {
@@ -187,7 +183,7 @@ public class Server {
 
 		ServerSocket server;
 		try {
-			server = new ServerSocket(6009);
+			server = new ServerSocket(5941);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
@@ -335,6 +331,7 @@ public class Server {
 		}
 	}
 	
+	
 	static private void dbUpload(String file) {
 		int index = getIndex(file);
 		ArrayList<block> b = chain.get(index);
@@ -446,6 +443,7 @@ public class Server {
 						writeInfo();
 						writeForFetch(fetch_name);
 						return f_name;
+						//return 1;
 					}
 					else {
 						//delete block
@@ -455,12 +453,12 @@ public class Server {
 						}
 						addViewCand(f_name, content, sign, line, fetch_name, p);
 					}
-				}	
+				}
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		return null;
+		return"no";
 	}
 	
 	static private String sign(int index) throws Exception {

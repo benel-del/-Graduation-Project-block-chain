@@ -63,7 +63,7 @@
 	</div>
 	
 	<div class="row mt-2">
-		<div class="alert alert-danger" id="format" role="alert">
+		<div class="alert alert-danger" id="format" role="alert" style="visibility:hidden">
 			<span>DECRYPT FILE MUST BE "_enc.txt" FORMAT</span>
 		</div>
 	</div>
@@ -87,6 +87,8 @@
 		<div class="col-sm-5 left">
 			<textarea class="form-control" id="original" name="original" rows="20" readonly></textarea>
 		</div>
+		<div class="col-sm-2 d-flex justify-content-center align-items-center">
+		</div>
 		<div class="col-sm-5 right">
 			<textarea class="form-control" id="result" rows="20" readonly></textarea>
 		</div>
@@ -102,7 +104,6 @@
 	const inputF = document.querySelector('#file');
 	const inputP = document.querySelector('#password');
 	const upload = document.getElementsByClassName("upload");
-	const download = document.getElementsByClassName("download");
 	
 	init();
 	
@@ -144,9 +145,8 @@
             			<%
             			}
             			%>
+            			document.getElementById('download').disabled = 'disabled';
             			document.getElementById('stateDownload').value = "File: <%=value[2]%>, size: <%=value[3]%>";
-            			for(var i = 0; i < download.length; i++)
-            				download.item(i).disabled = false;
             			<%
             			index = 0;
             			Line = f.read(value[2]);
@@ -252,10 +252,7 @@
 	function init(){
 		document.getElementById("file").value = null;
 		document.getElementById("upload").disabled = 'disabled';
-		document.getElementById("action").disabled = 'disabled';
-		document.getElementById("format").style.visibility = 'hidden';
-		for(var i = 0; i < download.length; i++)
-			download.item(i).disabled = 'disabled';
+		document.getElementById('download').disabled = 'disabled';
 		document.getElementById("stateUpload").value = "";
 		document.getElementById("stateDownload").value = "";
 		document.getElementById("original").value = "";

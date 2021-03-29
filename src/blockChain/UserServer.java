@@ -17,36 +17,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Calendar;
-import java.util.HashSet;
 import java.util.Base64.Decoder;
 import javax.crypto.Cipher;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
-
-@WebServlet("/access")
-public class UserServer extends HttpServlet {
-	static final long serialVersionUID = 1L;
-	
-	static Connection conn;
-	static ResultSet rs;
-	static String key;
-	static ArrayList<String> files = new ArrayList<>();
-	static ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
+public class UserServer {
+	Connection conn;
+	ResultSet rs;
+	String key;
+	ArrayList<String> files = new ArrayList<>();
+	ArrayList<ArrayList<block>> chain = new ArrayList<ArrayList<block>>();
 	
 	String userID;
 	String userPW;
-	String[] option;
-	
+
 	public UserServer(String userID, String userPW){
-		super();
 		this.userID = userID;
 		this.userPW = userPW;
 		
@@ -60,95 +44,69 @@ public class UserServer extends HttpServlet {
 			for(String file : files)
 				compare(file);
 			System.out.println("blockChainServer access [" + userID + "]");
-			Sockets soc = new Sockets(userID, 6009);
-			soc.start();
+			connect();
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}	
 	}
 	
-	@Override
-	public void init() {
+	public void connect() {
+		try {
+			Socket soc = new Socket("localhost", 5941);
 
-	}
+			//BufferedReader brs = new BufferedReader(new InputStreamReader(soc.getInputStream()));
+			PrintWriter pw = new PrintWriter(soc.getOutputStream());
+			
+			System.out.println("[VERIFY] Accept to Server Success...");
+			pw.println("verify");	// 1
 
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		doPost(request, response);
+			String[] str;
+			while(true) {
+				str = verify(userID);
+				if(str == null) {
+					pw.println("-1");
+					break;
+				}	
+				pw.println(str[0]);	// no
+				fetchContent(str);
+				//String file = brs.readLine();
+				//System.out.println(file);
+			}
+
+			pw.flush();
+			soc.close();
+            return;
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 	
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		request.setCharacterEncoding("UTF-8");
-		response.setContentType("text/html; charset=utf-8");
-		PrintWriter out = response.getWriter();
-		JSONObject json = new JSONObject();
-		String url = request.getParameter("name");
-		if(url.equals("logView")) {
-			String fileName = request.getParameter("file");
-			option = request.getParameterValues("option");
-			ArrayList<block> b = getChain(fileName);
-			if(b != null) {
-				String[] splitBlock;
-				for(int i = 1; i < b.size(); i++){
-					String str[] = b.get(i).getContent().split("\n");
-					String state = b.get(i).getState();
-					for(int j = 0; j < str.length; j++) {
-						splitBlock = str[j].split("\\|");
-						if (state.equals("Secure blockchain"))
-							json = addJson(splitBlock, "0");
-						else if(state.equals("SERVER Verification error"))
-							json = addJson(splitBlock, "1");
-						else if(state.equals("Different from local file"))
-							json = addJson(splitBlock, "2");
-						else if(state.equals("LOCAL Verification error"))	// ???
-							json = addJson(splitBlock, "3");
-					}
-				}
-			}
-		}
-		else if(url.equals("logsView")) {
-			String chart = request.getParameter("chart");
-			try {
-				if (chart.equals("day"))
-					json = countConnDay(); // ADD
-				else if (chart.equals("month"))
-					json = countConnMonth();
-				else if (chart.equals("time"))
-					json = countConnTime();
-				else if (chart.equals("load"))
-					json = countLoad();
-				else if (chart.equals("err"))
-					json = countStatus();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		out.print(json);
+	int check() {
+		return 1;
 	}
 	
-	static int verify(String userID) {	// 3) server.CAND check. if verify then return 1
+	String[] verify(String userID) {	// 3) server.CAND check. if verify then return record number
 		String sql = "SELECT * from server.VIEW_CAND WHERE VIEW_CAND.no NOT IN(SELECT no FROM server.VERIFY WHERE userID = ?) ORDER BY no ASC LIMIT 1";	// no, f_name, sign
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, userID);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
-				int no = rs.getInt(1);
-				String f_name = rs.getString(2);
-				String sign = rs.getString(3);
-				System.out.println("[VERIFY] " + userID + ": number." + no);
+				String str[] = {""+rs.getInt(1), rs.getString(2)};	//no, f_name
+				System.out.println("[VERIFY] " + userID + ": number" + str[0]);
 
 				ArrayList<block> b;
-				int index = getIndex(f_name);
+				int index = getIndex(str[1]);
 				if(index == -1) {
 					b = new ArrayList<block>();
-					b.add(new block("START", f_name + "\n"));	// genesis block
+					b.add(new block("START", str[1] + "\n"));	// genesis block
 				}
 				else {
 					b = chain.get(index);
 				}
 				
 				String state = "Y";
-				int dec = Integer.parseInt(decrypt(sign, getPublicKey(key)));
+				int dec = Integer.parseInt(decrypt(rs.getString(3), getPublicKey(key)));
 				int hash = (b.get(b.size()-1).getSign() + b.get(b.size()-1).getContent()).hashCode();
 				if(dec != hash){ // error
 					state = "N";
@@ -156,18 +114,18 @@ public class UserServer extends HttpServlet {
 				
 				sql = "INSERT INTO server.VERIFY(no, f_name, userID, answer) VALUES(?, ?, ?, ?)";
 				pstmt = conn.prepareStatement(sql);
-				pstmt.setInt(1, no);
-				pstmt.setString(2, f_name);
+				pstmt.setInt(1, Integer.parseInt(str[0]));
+				pstmt.setString(2, str[1]);
 				pstmt.setString(3, userID);
 				pstmt.setString(4, state);
 				pstmt.executeUpdate();
 				
-				return no;
+				return str;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return -1;
+		return null;
 	}
 
 	void compare(String file) {	// 2) compare server blockchain with disk blockchain
@@ -176,14 +134,14 @@ public class UserServer extends HttpServlet {
 		ArrayList<block> b = chain.get(index);
 		for(int i = 1; i < b.size(); i++) {
 			if(i >= local.size()) {	// 寃�利앺뻽�뜕 釉붾줉�씠 濡쒓렇�븘�썐 �씠�썑濡� 異붽��맂 寃�
-				writeForFetch(userID, file);
+				writeForFetch(file);
 				return;
 			}
 			else if(b.get(i).getState().equals("SERVER Verification error"))
 				continue;
 			else if(local.get(i).getState().equals("Verification error")){	// local �떊猶곗꽦 �엪�쓬
 				chain.get(index).get(i).setState("LOCAL Verification error");
-				writeForFetch(userID, file);
+				writeForFetch(file);
 				return;
 			}
 			else {
@@ -271,7 +229,7 @@ public class UserServer extends HttpServlet {
 		return b;
 	}
 	
-	static void writeForFetch(String userID, String filename) {	// code >> local blockchain
+	void writeForFetch(String filename) {	// code >> local blockchain
 		int index = getIndex(filename);
 		ArrayList<block> b = chain.get(index);
 		System.out.println("WRITE file " + filename);
@@ -293,19 +251,19 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	static void fetchContent(String userID, String file) {	// 4) add new block
-		int index = getIndex(file);
-		if(index == -1) {
-			chain.add(new ArrayList<block>());
-			chain.get(chain.size()-1).add(new block("START", file + "\n"));	// genesis block
-			files.add(file);
-		}
-
-		String sql = "SELECT no, sign, content FROM server." + file + " ORDER BY no DESC LIMIT 1;";	// 
+	void fetchContent(String[] str) {	// 4) add new block
+		// str: no, f_name
+		String sql = "SELECT no, sign, content FROM server." + str[1] + " ORDER BY no DESC LIMIT 1;";	// 
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			rs = pstmt.executeQuery();
 			if(rs.next()) {
+				int index = getIndex(str[1]);
+				if(index == -1) {
+					chain.add(new ArrayList<block>());
+					chain.get(chain.size()-1).add(new block("START", str[1] + "\n"));	// genesis block
+					files.add(str[1]);
+				}
 				if(rs.getInt(1) == chain.get(index).size()) {
 					String state = "Secure blockchain";
 					int dec = Integer.parseInt(decrypt(rs.getString(2), getPublicKey(key)));
@@ -314,7 +272,8 @@ public class UserServer extends HttpServlet {
 						state = "SERVER Verification error";
 					}
 					chain.get(index).add(new block(rs.getString(2), rs.getString(3), state));
-					writeForFetch(userID, file);
+					writeForFetch(str[1]);
+					System.out.println("[FETCH] add new block");
 				}
 			}
 			else return;
@@ -323,7 +282,7 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	static int getIndex(String name) {
+	int getIndex(String name) {
 		for(int i = 0; i < files.size(); i++) {
 			if(files.get(i).equals(name)) {
 				return i;
@@ -346,7 +305,7 @@ public class UserServer extends HttpServlet {
 		}
 	}
 	
-	static String decrypt(String data, Key key) throws Exception {
+	String decrypt(String data, Key key) throws Exception {
 		Cipher cipher = Cipher.getInstance("RSA");
 		Decoder decoder = Base64.getDecoder();
 		byte[] bCipher = decoder.decode(data.getBytes());
@@ -355,7 +314,7 @@ public class UserServer extends HttpServlet {
 		return new String(bPlain);
     }
 	
-	static PublicKey getPublicKey(String publicKey) throws Exception {
+	PublicKey getPublicKey(String publicKey) throws Exception {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         Decoder decoder = Base64.getDecoder();
         byte[] decodedKey = decoder.decode(publicKey.getBytes());
@@ -387,232 +346,6 @@ public class UserServer extends HttpServlet {
 		}
 		return log;
 	}
-	
-	@SuppressWarnings("unchecked")
-	JSONObject addJson(String[] splitLog, String code) {
-    	JSONArray temp = new JSONArray();
-    	JSONObject temp2 = new JSONObject();
-    	for (int i=0; i< option.length; i++) {
-    		temp.add(splitLog[Integer.parseInt(option[i])]);
-    	}
-    	temp2.put(code, temp);
-    	//json.add(temp2);
-    	return temp2;
-    }
-	
-	@SuppressWarnings("unchecked")
-	JSONObject countConnDay () throws Exception { // parameter, name change
-		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs"); // ADD
-		ArrayList<String> filelist = getList();
-		//String[] filelist = dir.list(); // ADD
-		String[] temp; // for file content split
-		JSONObject jsObj = new JSONObject();
-		String[] filename; // ADD
-		int day = (filelist.size()>6) ? 7 : filelist.size(); // size() -> length
-		for (int d=day; d>0; d--) { // per day
-			HashSet<String> hs = new HashSet<String>();
-			ArrayList<String> f = getLog(filelist.get(filelist.size()-d));
-			//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/"+filelist[filelist.length-d]); // ADD
-			//BufferedReader br = new BufferedReader(filerd); // ADD
-			//ArrayList<String> f = new ArrayList<String>(); // ADD
-			//String line = ""; // ADD
-			//while ((line=br.readLine())!=null) f.add(line); // ADD
-			for (int j=0; j<f.size(); j++) {
-				temp = f.get(j).split("\\|");
-				hs.add(temp[0]);
-			}
-//			jsObj.put(filelist.get(filelist.size()-d), hs.size());
-			//filename = filelist[filelist.length-d].split("\\."); // ADD
-			filename = filelist.get(filelist.size()-d).split("\\."); // ADD
-			jsObj.put(filename[1], hs.size()); // ADD
-		}
-		return jsObj;
-	}
-	
-	@SuppressWarnings("unchecked")
-	JSONObject countConnMonth() throws Exception {
-		Calendar cal = Calendar.getInstance();
-		int recentM = cal.get(Calendar.MONTH)+1;
-		int recentY = cal.get(Calendar.YEAR);
-		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs/");
-		//String[] filelist = dir.list();
-		ArrayList<String> filelist = getList();
-		String[] temp; // for file name split
-		String[] temp2; // for file name split
-		JSONObject jsObj = new JSONObject();
-		ArrayList<String> monthList[] = new ArrayList[5];
-		for (int i=0; i<5; i++) monthList[i]= new ArrayList<String>(); // reset
-		for (int i=0; i<filelist.size(); i++) {
-			temp = filelist.get(i).split("\\.");
-			temp2 = temp[1].split("-");
-			int index=0;
-			if ((index=(recentY-Integer.parseInt(temp2[0]))*12+recentM-Integer.parseInt(temp2[1]))<6) {
-				monthList[index].add(filelist.get(i));
-			}
-		}
-		for (int m=4; m>=0; m--) { // per month
-			HashSet<String> hs = new HashSet<String>();
-			for (int j = 0; j<monthList[m].size(); j++) { // per log file
-				ArrayList<String> f = getLog(monthList[m].get(j));
-				//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/"+monthList[m].get(j));
-				//BufferedReader br = new BufferedReader(filerd);
-				//ArrayList<String> f = new ArrayList<String>();
-				//String line = ""; // ADD
-				//while ((line=br.readLine())!=null) f.add(line); // reset
-				for (int k=0; k<f.size(); k++) {
-					temp = f.get(k).split("\\|");
-					hs.add(temp[0]);
-				}
-			}
-			String monthName = (recentM<=m ? (recentY-1)+"."+(recentM+12-m) : recentY+"."+(recentM-m));
-			jsObj.put(monthName, hs.size());
-		}
-		// monthList[1].get();
-		return jsObj;
-	}
 
-	@SuppressWarnings("unchecked")
-	JSONObject countConnTime() throws Exception {
-		// 0:0:0:0:0:0:0:1|127.0.0.1|11157|HTTP/1.1|GET|[19/Mar/2021:17:13:51 +0900]|200|-|/
-		Calendar cal = Calendar.getInstance();
-		int recentD = cal.get(Calendar.DAY_OF_MONTH);
-		int recentM = cal.get(Calendar.MONTH)+1;
-		int recentY = cal.get(Calendar.YEAR);
-		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs/");
-		//String[] filenames = dir.list();
-		ArrayList<String> filelist = getList();
-		JSONObject jsObj = new JSONObject();
-		int[] countTime = new int[24]; 
-		String[] temp; // for log line split
-		for (int i = 0; i < filelist.size(); i++) {
-		    if (filelist.get(i).equals("log_"+recentY+String.format("%02d", recentM)+recentD)) {
-				ArrayList<String> f = getLog(filelist.get(i));
-				for (int j=0; j<f.size(); j++) {
-					if (f.get(i).contains("logView.jsp")) {
-						temp = f.get(i).split("\\:");
-						countTime[Integer.parseInt(temp[8])]++;
-					}
-				}
-				//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/localhost_access_log."+recentY+"-"+String.format("%02d", recentM)+"-"+recentD+".txt"); // ADD
-				//BufferedReader br = new BufferedReader(filerd); // ADD
-				//while ((line=br.readLine())!=null) {
-				//	if (line.contains("logView.jsp")) {
-				//		temp = line.split("\\:");
-				//		countTime[Integer.parseInt(temp[8])]++;
-				//	}
-				//}
-		    }
-		}
-		countTime[1]+=countTime[0]; // 0h is contained 0-2h
-		for (int i=1; i<24; i++) { // divide by 3 hour e.g. 0-2h, 3-5h
-			if (i%3==2) jsObj.put((i/3)+"", countTime[i]);
-			else countTime[i+1] += countTime[i];
-		}
-		return jsObj;
-	}
-	
-	@SuppressWarnings("unchecked")
-	JSONObject countLoad() throws Exception {
-		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs");
-		//String[] filelist = dir.list(); // ADD
-		ArrayList<String> filelist = getList();
-		//String[] temp; // for file content split
-		JSONObject jsObj = new JSONObject();
-		JSONObject jtemp1 = new JSONObject();
-		JSONObject jtemp2 = new JSONObject();
-		String[] filename;
-		int day = (filelist.size()>6) ? 7 : filelist.size();
-		for (int d=day; d>0; d--) { // per day
-			int[] count = new int[2];
-			//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/"+filelist[filelist.length-d]);
-			///BufferedReader br = new BufferedReader(filerd);
-			filename = filelist.get(filelist.size()-d).split("\\.");
-			//String line = ""; // ADD
-			//while ((line=br.readLine())!=null) {
-			//	if (line.contains("upload.jsp")) count[0]++;
-			//	else if (line.contains("download.jsp")) count[1]++;
-			//}
-			ArrayList<String> f = getLog(filelist.get(filelist.size()-d));
-			for(int i = 0; i < f.size(); i++) {
-				if(f.get(i).contains("Upload"))	count[0]++;
-				else if(f.get(i).contains("Download"))	count[1]++;
-			}
-			jtemp1.put(filename[1], count[0]);
-			jtemp2.put(filename[1], count[1]);
-		}
-		jsObj.put("upload", jtemp1);
-		jsObj.put("download",jtemp2);
-		return jsObj;
-	}
-	
-	@SuppressWarnings("unchecked")
-	JSONObject countStatus() throws Exception {
-		JSONObject jsObj = new JSONObject();
-		//JSONObject jtemp1 = new JSONObject();
-		//JSONObject jtemp2 = new JSONObject();
-		//JSONObject jtemp3 = new JSONObject();
-		//JSONObject jtemp4 = new JSONObject();
-		ArrayList<String> filelist = getList();
-		String[] temp; // for file content split
-		String[] filename;
-		ArrayList<String> status = new ArrayList<String>();
-		int day = (status.size()>6) ? 7 : status.size(); // size() -> length
-		for (int d=day; d>0; d--) { // per day
-			HashSet<String> hs = new HashSet<String>();
-			ArrayList<String> f = getLog(filelist.get(filelist.size()-d));
-//			BufferedReader br = new BufferedReader(filerd);
-//			ArrayList<String> f = new ArrayList<String>();
-//			String line = ""; // ADD
-//			while ((line=br.readLine())!=null) f.add(line);
-			for (int j=0; j<f.size(); j++) {
-				temp = f.get(j).split("\\|");
-				hs.add(temp[0]);
-			}
-//			jsObj.put(filelist.get(filelist.size()-i), hs.size());
-//			filename = filelist[filelist.length-d].split("\\.");
-			filename = filelist.get(filelist.size()-d).split("\\.");
-			jsObj.put(filename[1], hs.size());
-		}
-		return jsObj;
-	}
 }
 
-class Sockets extends Thread {
-	String userID;
-	int port;
-	Socket soc;
-	Sockets(String userID, int port) {
-		this.userID = userID;
-		this.port = port;
-	}
-
-	public void run() {
-		try {
-			soc = new Socket("localhost", port);
-			
-			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
-			PrintWriter pw = new PrintWriter(soc.getOutputStream());
-			
-			//System.out.println("Accept to Server[6009] Success...");
-
-			pw.println("verify");
-			int result; 
-			while(true) {
-				result = UserServer.verify(userID);
-				pw.println(result);
-				String file = br.readLine();
-				if(!file.equals("no")) {	// add block
-					UserServer.fetchContent(userID, file);
-				}
-			}
-		} catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-        	try {
-				soc.close();
-			} catch (IOException e) {
-				System.out.println("Client close error");
-			}
-        }
-	}
-}
