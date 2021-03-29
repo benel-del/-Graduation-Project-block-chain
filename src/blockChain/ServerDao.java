@@ -20,6 +20,7 @@ import org.json.simple.JSONObject;
 public class ServerDao extends HttpServlet {
 	static final long serialVersionUID = 1L;
 	static UserServer server;
+	JSONArray json;
 	String[] option;
 	
 	public ServerDao(){
@@ -40,10 +41,10 @@ public class ServerDao extends HttpServlet {
 		server = new UserServer(id, pw);
 		
 		PrintWriter out = response.getWriter();
-		JSONObject json = new JSONObject();
 		String url = request.getParameter("name");
 		System.out.println(url);
 		if(url.equals("logView")) {
+			json = new JSONArray();
 			String fileName = request.getParameter("file");
 			option = request.getParameterValues("option");
 			ArrayList<block> b = server.getChain(fileName);
@@ -55,18 +56,20 @@ public class ServerDao extends HttpServlet {
 					for(int j = 0; j < str.length; j++) {
 						splitBlock = str[j].split("\\|");
 						if (state.equals("Secure blockchain"))
-							json = addJson(splitBlock, "0");
+							addJson(splitBlock, "0");
 						else if(state.equals("Server Verification error"))
-							json = addJson(splitBlock, "1");
+							addJson(splitBlock, "1");
 						else if(state.equals("Different from local file"))
-							json = addJson(splitBlock, "2");
-						else if(state.equals("Local Verification error"))	// ???
-							json = addJson(splitBlock, "3");
+							addJson(splitBlock, "2");
+						else if(state.equals("Local Verification error"))
+							addJson(splitBlock, "3");
 					}
 				}
+				out.print(json);
 			}
 		}
 		else if(url.equals("logsView")) {
+			JSONObject json = new JSONObject();
 			String chart = request.getParameter("chart");
 			try {
 				if (chart.equals("day"))
@@ -79,23 +82,22 @@ public class ServerDao extends HttpServlet {
 					json = countLoad();
 				else if (chart.equals("err"))
 					json = countStatus();
+				out.print(json);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		out.print(json);
 	}
 	
 	@SuppressWarnings("unchecked")
-	JSONObject addJson(String[] splitLog, String code) {
+	void addJson(String[] splitLog, String code) {
     	JSONArray temp = new JSONArray();
     	JSONObject temp2 = new JSONObject();
     	for (int i=0; i< option.length; i++) {
     		temp.add(splitLog[Integer.parseInt(option[i])]);
     	}
     	temp2.put(code, temp);
-    	//json.add(temp2);
-    	return temp2;
+    	json.add(temp2);
     }
 	
 	@SuppressWarnings("unchecked")
@@ -111,8 +113,8 @@ public class ServerDao extends HttpServlet {
 				temp = f.get(j).split("\\|");
 				hs.add(temp[0]);
 			}
-			jsObj.put(filelist.get(filelist.size()-d), hs.size());
-
+			String name = filelist.get(filelist.size()-d).substring(8, 10) + "." + filelist.get(filelist.size()-d).substring(10, 12);
+			jsObj.put(name, hs.size());
 		}
 		return jsObj;
 	}
@@ -152,7 +154,8 @@ public class ServerDao extends HttpServlet {
 
 	@SuppressWarnings("unchecked")
 	JSONObject countConnTime() throws Exception {
-		// 0:0:0:0:0:0:0:1|127.0.0.1|11157|HTTP/1.1|GET|[19/Mar/2021:17:13:51 +0900]|200|-|/
+		// 0:0:0:0:0:0:0:1|127.0.0.1|11157|HTTP/1.1|GET|[19/Mar/2021:17:13:51 +0900]|200|-|
+		// 127.0.0.1|127.0.0.1|5987|HTTP/1.1|GET|[24/Mar/2021:02:49:49 +0900]|200|56B6C99153DBCAB52151C641DE2F6B28|/block/index.jsp
 		Calendar cal = Calendar.getInstance();
 		int recentD = cal.get(Calendar.DAY_OF_MONTH);
 		int recentM = cal.get(Calendar.MONTH)+1;
@@ -161,15 +164,18 @@ public class ServerDao extends HttpServlet {
 		JSONObject jsObj = new JSONObject();
 		int[] countTime = new int[24]; 
 		String[] temp; // for log line split
+		String[] temp2; // for log line split
 		for (int i = 0; i < filelist.size(); i++) {
 		    if (filelist.get(i).equals("log_"+recentY+String.format("%02d", recentM)+recentD)) {
 				ArrayList<String> f = server.getLog(filelist.get(i));
 				for (int j=0; j<f.size(); j++) {
 					if (f.get(i).contains("index.jsp")) {
-						temp = f.get(i).split("\\:");
-						countTime[Integer.parseInt(temp[8])]++;
+						temp = f.get(i).split("\\|");
+						temp2= temp[5].split("\\:");
+						countTime[Integer.parseInt(temp2[1])]++;
 					}
 				}
+				break;
 		    }
 		}
 		countTime[1]+=countTime[0]; // 0h is contained 0-2h
@@ -194,8 +200,9 @@ public class ServerDao extends HttpServlet {
 				if(f.get(i).contains("Upload"))	count[0]++;
 				else if(f.get(i).contains("Download"))	count[1]++;
 			}
-			jtemp1.put(filelist.get(filelist.size()-d), count[0]);
-			jtemp2.put(filelist.get(filelist.size()-d), count[1]);
+			String name = filelist.get(filelist.size()-d).substring(8, 10) + "." + filelist.get(filelist.size()-d).substring(10, 12);
+			jtemp1.put(name, count[0]);
+			jtemp2.put(name, count[1]);
 		}
 		jsObj.put("upload", jtemp1);
 		jsObj.put("download",jtemp2);
@@ -204,6 +211,8 @@ public class ServerDao extends HttpServlet {
 	
 	@SuppressWarnings("unchecked")
 	JSONObject countStatus() throws Exception {
+		// 0:0:0:0:0:0:0:1|127.0.0.1|11157|HTTP/1.1|GET|[19/Mar/2021:17:13:51 +0900]|200|-|
+		// 127.0.0.1|127.0.0.1|5987|HTTP/1.1|GET|[24/Mar/2021:02:49:49 +0900]|200|56B6C99153DBCAB52151C641DE2F6B28|/block/index.jsp
 		JSONObject jsObj = new JSONObject();
 		//JSONObject jtemp1 = new JSONObject();
 		//JSONObject jtemp2 = new JSONObject();
@@ -218,7 +227,7 @@ public class ServerDao extends HttpServlet {
 			ArrayList<String> f = server.getLog(filelist.get(filelist.size()-d));
 			for (int j=0; j<f.size(); j++) {
 				temp = f.get(j).split("\\|");
-				hs.add(temp[0]);
+				hs.add(temp[6]);
 			}
 			jsObj.put(filelist.get(filelist.size()-d), hs.size());
 		}
