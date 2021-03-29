@@ -22,15 +22,16 @@ public class ServerDao extends HttpServlet {
 	static UserServer server;
 	String[] option;
 	
-	ServerDao(){
+	public ServerDao(){
 		super();
 	}
 	
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doPost(request, response);
 	}
 	
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		System.out.println("access");
 		request.setCharacterEncoding("UTF-8");
 		response.setContentType("text/html; charset=utf-8");
 		HttpSession session = request.getSession(true);
@@ -41,6 +42,7 @@ public class ServerDao extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		JSONObject json = new JSONObject();
 		String url = request.getParameter("name");
+		System.out.println(url);
 		if(url.equals("logView")) {
 			String fileName = request.getParameter("file");
 			option = request.getParameterValues("option");
@@ -54,11 +56,11 @@ public class ServerDao extends HttpServlet {
 						splitBlock = str[j].split("\\|");
 						if (state.equals("Secure blockchain"))
 							json = addJson(splitBlock, "0");
-						else if(state.equals("SERVER Verification error"))
+						else if(state.equals("Server Verification error"))
 							json = addJson(splitBlock, "1");
 						else if(state.equals("Different from local file"))
 							json = addJson(splitBlock, "2");
-						else if(state.equals("LOCAL Verification error"))	// ???
+						else if(state.equals("Local Verification error"))	// ???
 							json = addJson(splitBlock, "3");
 					}
 				}
@@ -98,29 +100,19 @@ public class ServerDao extends HttpServlet {
 	
 	@SuppressWarnings("unchecked")
 	JSONObject countConnDay () throws Exception { // parameter, name change
-		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs"); // ADD
-		ArrayList<String> filelist = server.getList();
-		//String[] filelist = dir.list(); // ADD
+		ArrayList<String> filelist = server.getList();	// log_20210329
 		String[] temp; // for file content split
 		JSONObject jsObj = new JSONObject();
-		String[] filename; // ADD
-		int day = (filelist.size()>6) ? 7 : filelist.size(); // size() -> length
+		int day = (filelist.size()>6) ? 7 : filelist.size();
 		for (int d=day; d>0; d--) { // per day
 			HashSet<String> hs = new HashSet<String>();
 			ArrayList<String> f = server.getLog(filelist.get(filelist.size()-d));
-			//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/"+filelist[filelist.length-d]); // ADD
-			//BufferedReader br = new BufferedReader(filerd); // ADD
-			//ArrayList<String> f = new ArrayList<String>(); // ADD
-			//String line = ""; // ADD
-			//while ((line=br.readLine())!=null) f.add(line); // ADD
 			for (int j=0; j<f.size(); j++) {
 				temp = f.get(j).split("\\|");
 				hs.add(temp[0]);
 			}
-//			jsObj.put(filelist.get(filelist.size()-d), hs.size());
-			//filename = filelist[filelist.length-d].split("\\."); // ADD
-			filename = filelist.get(filelist.size()-d).split("\\."); // ADD
-			jsObj.put(filename[1], hs.size()); // ADD
+			jsObj.put(filelist.get(filelist.size()-d), hs.size());
+
 		}
 		return jsObj;
 	}
@@ -130,19 +122,15 @@ public class ServerDao extends HttpServlet {
 		Calendar cal = Calendar.getInstance();
 		int recentM = cal.get(Calendar.MONTH)+1;
 		int recentY = cal.get(Calendar.YEAR);
-		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs/");
-		//String[] filelist = dir.list();
-		ArrayList<String> filelist = server.getList();
+		ArrayList<String> filelist = server.getList();	// log_20210329
 		String[] temp; // for file name split
-		String[] temp2; // for file name split
 		JSONObject jsObj = new JSONObject();
 		ArrayList<String> monthList[] = new ArrayList[5];
-		for (int i=0; i<5; i++) monthList[i]= new ArrayList<String>(); // reset
+		for (int i=0; i<5; i++) monthList[i]= new ArrayList<String>();
 		for (int i=0; i<filelist.size(); i++) {
-			temp = filelist.get(i).split("\\.");
-			temp2 = temp[1].split("-");
+			temp = filelist.get(i).split("_");
 			int index=0;
-			if ((index=(recentY-Integer.parseInt(temp2[0]))*12+recentM-Integer.parseInt(temp2[1]))<6) {
+			if ((index=(recentY-Integer.parseInt(temp[1].substring(0,4)))*12+recentM-Integer.parseInt(temp[1].substring(4,6)))<6) {
 				monthList[index].add(filelist.get(i));
 			}
 		}
@@ -150,11 +138,6 @@ public class ServerDao extends HttpServlet {
 			HashSet<String> hs = new HashSet<String>();
 			for (int j = 0; j<monthList[m].size(); j++) { // per log file
 				ArrayList<String> f = server.getLog(monthList[m].get(j));
-				//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/"+monthList[m].get(j));
-				//BufferedReader br = new BufferedReader(filerd);
-				//ArrayList<String> f = new ArrayList<String>();
-				//String line = ""; // ADD
-				//while ((line=br.readLine())!=null) f.add(line); // reset
 				for (int k=0; k<f.size(); k++) {
 					temp = f.get(k).split("\\|");
 					hs.add(temp[0]);
@@ -174,8 +157,6 @@ public class ServerDao extends HttpServlet {
 		int recentD = cal.get(Calendar.DAY_OF_MONTH);
 		int recentM = cal.get(Calendar.MONTH)+1;
 		int recentY = cal.get(Calendar.YEAR);
-		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs/");
-		//String[] filenames = dir.list();
 		ArrayList<String> filelist = server.getList();
 		JSONObject jsObj = new JSONObject();
 		int[] countTime = new int[24]; 
@@ -184,19 +165,11 @@ public class ServerDao extends HttpServlet {
 		    if (filelist.get(i).equals("log_"+recentY+String.format("%02d", recentM)+recentD)) {
 				ArrayList<String> f = server.getLog(filelist.get(i));
 				for (int j=0; j<f.size(); j++) {
-					if (f.get(i).contains("logView.jsp")) {
+					if (f.get(i).contains("index.jsp")) {
 						temp = f.get(i).split("\\:");
 						countTime[Integer.parseInt(temp[8])]++;
 					}
 				}
-				//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/localhost_access_log."+recentY+"-"+String.format("%02d", recentM)+"-"+recentD+".txt"); // ADD
-				//BufferedReader br = new BufferedReader(filerd); // ADD
-				//while ((line=br.readLine())!=null) {
-				//	if (line.contains("logView.jsp")) {
-				//		temp = line.split("\\:");
-				//		countTime[Integer.parseInt(temp[8])]++;
-				//	}
-				//}
 		    }
 		}
 		countTime[1]+=countTime[0]; // 0h is contained 0-2h
@@ -209,32 +182,20 @@ public class ServerDao extends HttpServlet {
 	
 	@SuppressWarnings("unchecked")
 	JSONObject countLoad() throws Exception {
-		//File dir = new File("/usr/local/apache-tomcat-9.0.41/logs");
-		//String[] filelist = dir.list(); // ADD
-		ArrayList<String> filelist = server.getList();
-		//String[] temp; // for file content split
+		ArrayList<String> filelist = server.getList();		// log_20210329
 		JSONObject jsObj = new JSONObject();
 		JSONObject jtemp1 = new JSONObject();
 		JSONObject jtemp2 = new JSONObject();
-		String[] filename;
 		int day = (filelist.size()>6) ? 7 : filelist.size();
 		for (int d=day; d>0; d--) { // per day
 			int[] count = new int[2];
-			//FileReader filerd = new FileReader("/usr/local/apache-tomcat-9.0.41/logs/"+filelist[filelist.length-d]);
-			///BufferedReader br = new BufferedReader(filerd);
-			filename = filelist.get(filelist.size()-d).split("\\.");
-			//String line = ""; // ADD
-			//while ((line=br.readLine())!=null) {
-			//	if (line.contains("upload.jsp")) count[0]++;
-			//	else if (line.contains("download.jsp")) count[1]++;
-			//}
 			ArrayList<String> f = server.getLog(filelist.get(filelist.size()-d));
 			for(int i = 0; i < f.size(); i++) {
 				if(f.get(i).contains("Upload"))	count[0]++;
 				else if(f.get(i).contains("Download"))	count[1]++;
 			}
-			jtemp1.put(filename[1], count[0]);
-			jtemp2.put(filename[1], count[1]);
+			jtemp1.put(filelist.get(filelist.size()-d), count[0]);
+			jtemp2.put(filelist.get(filelist.size()-d), count[1]);
 		}
 		jsObj.put("upload", jtemp1);
 		jsObj.put("download",jtemp2);
@@ -250,24 +211,16 @@ public class ServerDao extends HttpServlet {
 		//JSONObject jtemp4 = new JSONObject();
 		ArrayList<String> filelist = server.getList();
 		String[] temp; // for file content split
-		String[] filename;
 		ArrayList<String> status = new ArrayList<String>();
-		int day = (status.size()>6) ? 7 : status.size(); // size() -> length
+		int day = (status.size()>6) ? 7 : status.size();
 		for (int d=day; d>0; d--) { // per day
 			HashSet<String> hs = new HashSet<String>();
 			ArrayList<String> f = server.getLog(filelist.get(filelist.size()-d));
-//			BufferedReader br = new BufferedReader(filerd);
-//			ArrayList<String> f = new ArrayList<String>();
-//			String line = ""; // ADD
-//			while ((line=br.readLine())!=null) f.add(line);
 			for (int j=0; j<f.size(); j++) {
 				temp = f.get(j).split("\\|");
 				hs.add(temp[0]);
 			}
-//			jsObj.put(filelist.get(filelist.size()-i), hs.size());
-//			filename = filelist[filelist.length-d].split("\\.");
-			filename = filelist.get(filelist.size()-d).split("\\.");
-			jsObj.put(filename[1], hs.size());
+			jsObj.put(filelist.get(filelist.size()-d), hs.size());
 		}
 		return jsObj;
 	}

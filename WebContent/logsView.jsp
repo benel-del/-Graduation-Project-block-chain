@@ -27,7 +27,7 @@
 	if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
 		userID = (String) session.getAttribute("userID");
 		userPW = (String) session.getAttribute("userPW");
-		UserServer server = new UserServer(userID, userPW);
+		//UserServer server = new UserServer(userID, userPW);
 		//server.connect();
 	}
 	else{
@@ -124,7 +124,7 @@ $(function() {
 		$.ajax({
             url: "<%=request.getContextPath()%>/access",
 			method: "POST",
-			data: {chart:$(this).attr('id')},
+			data: {name: "logsView", chart:$(this).attr('id')},
 			dataType: "json"
 		})
         .done(function(json) {
@@ -196,7 +196,7 @@ $(function() {
 		$.ajax({
             url: "<%=request.getContextPath()%>/access",
 			method: "POST",
-			data: {chart:$(this).attr('id')},
+			data: {name: "logsView", chart:$(this).attr('id')},
 			dataType: "json"
 		})
         .done(function(json) {
@@ -248,7 +248,7 @@ $(function() {
 		$.ajax({
             url: "<%=request.getContextPath()%>/access",
 			method: "POST",
-			data: {chart:$(this).attr('id')},
+			data: {name: "logsView", chart:$(this).attr('id')},
 			dataType: "json"
 		})
         .done(function(json) {

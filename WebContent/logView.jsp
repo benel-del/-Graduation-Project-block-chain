@@ -27,7 +27,6 @@
 		if(session.getAttribute("userID") != null && session.getAttribute("userPW") != null){
 			userID = (String) session.getAttribute("userID");
 			userPW = (String) session.getAttribute("userPW");
-			UserServer server = new UserServer(userID, userPW);
 		}
 		else{
 			PrintWriter script = response.getWriter();
@@ -36,12 +35,13 @@
 			script.println("</script>");
 		}
 		
-		ArrayList<String> files = new ArrayList<>();
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockchain/" + userID + "File";
-		String[] fileNameOfPath = new File(path).list();
-		for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
-			files.add(fileNameOfPath[i]);
-		}
+		UserServer server = new UserServer(userID, userPW);
+		ArrayList<String> files = server.getList();
+		//String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/blockChain/" + userID + "File";
+		//String[] fileNameOfPath = new File(path).list();
+		//for(int i = 0; fileNameOfPath!=null && i < fileNameOfPath.length; i++){
+		//	files.add(fileNameOfPath[i]);
+		//}
 		String optionList[] = {"Remote IP", "Local IP", "BytesSent", "Request Protocol", "Request Method", "Time", "HTTP status code", "user session ID", "Requested URL"};
 		
 	%>
@@ -62,7 +62,7 @@
 			</div>
 			<div>
 				<span class="badge bg-danger">102</span>
-				<span>SERVER Verification error</span>
+				<span>Server Verification error</span>
 			</div>
 			<div>
 				<span class="badge bg-primary">103</span>
@@ -70,7 +70,7 @@
 			</div>
 			<div>
 				<span class="badge bg-secondary">104</span>
-				<span>LOCAL Verification error</span>
+				<span>Local Verification error</span>
 			</div>
 		</div>
 	</div>

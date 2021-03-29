@@ -183,7 +183,7 @@ public class Server {
 
 		ServerSocket server;
 		try {
-			server = new ServerSocket(5937);
+			server = new ServerSocket(5945);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
@@ -697,6 +697,7 @@ public class Server {
 				else {
 					FileReader fileReader = new FileReader(file);
 					BufferedReader bufReader = new BufferedReader(fileReader);
+					key = new String[2];
 					key[0] = bufReader.readLine();
 					key[1] = bufReader.readLine();
 					bufReader.close();

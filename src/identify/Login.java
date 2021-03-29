@@ -1,15 +1,10 @@
-package indentify;
+package identify;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -55,7 +50,7 @@ public class Login extends HttpServlet {
 
 	public int connect(String userID, String userPW) {
 		try {
-			Socket soc = new Socket("localhost", 5937);
+			Socket soc = new Socket("localhost", 5945);
 
 			BufferedReader br = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());

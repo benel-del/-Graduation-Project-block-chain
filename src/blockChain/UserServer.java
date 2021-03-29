@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.Key;
@@ -52,7 +51,7 @@ public class UserServer {
 	
 	public void connect() {
 		try {
-			Socket soc = new Socket("localhost", 5937);
+			Socket soc = new Socket("localhost", 5945);
 
 			//BufferedReader brs = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
@@ -134,13 +133,15 @@ public class UserServer {
 		ArrayList<block> b = chain.get(index);
 		for(int i = 1; i < b.size(); i++) {
 			if(i >= local.size()) {	// when user logout, other user verify about that user verified
+				System.out.println("local size < server size -> writeForFetch");
 				writeForFetch(file);
 				return;
 			}
-			else if(b.get(i).getState().equals("SERVER Verification error"))
+			else if(b.get(i).getState().equals("Server Verification error"))
 				continue;
 			else if(local.get(i).getState().equals("Verification error")){	// local(disk text_file) error
-				chain.get(index).get(i).setState("LOCAL Verification error");
+				chain.get(index).get(i).setState("Local Verification error");
+				System.out.println("local verification error -> writeForFetch");
 				writeForFetch(file);
 				return;
 			}
@@ -177,7 +178,7 @@ public class UserServer {
 					int dec = Integer.parseInt(decrypt(rs.getString(1), getPublicKey(key)));
 					int hash = (chain.get(chain.size()-1).get(chain.get(chain.size()-1).size()-1).getSign() + chain.get(chain.size()-1).get(chain.get(chain.size()-1).size()-1).getContent()).hashCode();
 					if(dec != hash){ // error
-						state = "SERVER Verification error";
+						state = "Server Verification error";
 					}
 					chain.get(chain.size()-1).add(new block(rs.getString(1), rs.getString(2), state));
 				}
@@ -270,9 +271,10 @@ public class UserServer {
 					int dec = Integer.parseInt(decrypt(rs.getString(2), getPublicKey(key)));
 					int hash = (chain.get(index).get(chain.get(index).size()-1).getSign() + chain.get(index).get(chain.get(index).size()-1).getContent()).hashCode();
 					if(dec != hash){ // error
-						state = "SERVER Verification error";
+						state = "Server Verification error";
 					}
 					chain.get(index).add(new block(rs.getString(2), rs.getString(3), state));
+					System.out.println("add new block -> writeForFetch");
 					writeForFetch(str[1]);
 					System.out.println("[FETCH] add new block");
 				}
@@ -339,7 +341,7 @@ public class UserServer {
 		ArrayList<block> b = chain.get(index);
 		ArrayList<String> log = new ArrayList<>();
 		for(int i = 1; i < b.size(); i++) {
-			if(!b.get(i).getState().equals("SERVER Verification error")) {
+			if(!b.get(i).getState().equals("Server Verification error")) {
 				String[] str = b.get(i).getContent().split("\n");
 				for(int j = 0; j < str.length; j++) 
 					log.add(str[j]);
