@@ -103,7 +103,7 @@
 	const inputP = document.querySelector('#password');
 	const upload = document.getElementsByClassName("upload");
 	
-	//init();
+	init();
 	
 	$(function() {
 		var newFile="a.txt";
@@ -146,7 +146,8 @@
 
 		$('#download').on('click', function() {
 			const encFileName = encodeURI(newFile);
-			window.location="<%=request.getContextPath()%>/fileDownload?file=${encFileName}";
+			console.log("<%=request.getContextPath()%>/fileDownload?file="+encFileName);
+			window.location="<%=request.getContextPath()%>/fileDownload?file="+encFileName;
 		});
 	});
 
@@ -229,8 +230,6 @@
 				new File(path + "/" + fileNameOfPath[i]).delete();
 		}
 		%>
-		
-		
 	}
 	</script>
 </body>
