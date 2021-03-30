@@ -28,7 +28,7 @@ public class FileDownload extends HttpServlet {
 		doPost(request, response);
 	}
 	
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("UTF-8");
 		response.setContentType("text/html; charset=utf-8");
 		try {
@@ -36,6 +36,7 @@ public class FileDownload extends HttpServlet {
 			String file = request.getParameter("file");
 			String sDownPath = getServletContext().getRealPath("/uploadFile");
 			String sFilePath = sDownPath + "/" + file;
+			System.out.println(sFilePath);
 			File outFile = new File(sFilePath);
 			String userAgent = request.getHeader("User-Agent");
 
@@ -69,5 +70,4 @@ public class FileDownload extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-
 }
