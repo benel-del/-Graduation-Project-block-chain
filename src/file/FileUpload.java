@@ -38,7 +38,6 @@ public class FileUpload extends HttpServlet {
 		response.setContentType("text/html; charset=utf-8");
 		try {
 			String uploadPath = getServletContext().getRealPath("/uploadFile");
-			System.out.println(uploadPath);
 			int maxSize = 1024 *1024 *10;// �ѹ��� �ø� �� �ִ� ���� �뷮 : 10M�� ����
 			MultipartRequest multi = new MultipartRequest(request, uploadPath, maxSize, "utf-8", new DefaultFileRenamePolicy());
 			String option = multi.getParameter("option");
@@ -104,5 +103,4 @@ public class FileUpload extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-
 }
