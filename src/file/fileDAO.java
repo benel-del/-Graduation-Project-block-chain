@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class FileDAO {
 	public ArrayList<String> read(String name) {
 		ArrayList<String> Line = new ArrayList<>();
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile/" + name;
+		String path = "/Users/kjs/JSP/.metadata/.plugins/org.eclipse.wst.server.core/tmp1/wtpwebapps/block/uploadFile/" + name;
 		try {
 			File file = new File(path);
 			FileReader fileReader = new FileReader(file);
