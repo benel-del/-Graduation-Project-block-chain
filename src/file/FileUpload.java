@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.json.simple.JSONObject;
+
 import com.oreilly.servlet.MultipartRequest;
 import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
 
@@ -37,11 +39,12 @@ public class FileUpload extends HttpServlet {
 		try {
 			String uploadPath = getServletContext().getRealPath("/uploadFile");
 			System.out.println(uploadPath);
-			int maxSize = 1024 *1024 *10;// ÇÑ¹ø¿¡ ¿Ã¸± ¼ö ÀÖ´Â ÆÄÀÏ ¿ë·® : 10M·Î Á¦ÇÑ
+			int maxSize = 1024 *1024 *10;// ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® : 10Mï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			MultipartRequest multi = new MultipartRequest(request, uploadPath, maxSize, "utf-8", new DefaultFileRenamePolicy());
 			String option = multi.getParameter("option");
 			String pw = multi.getParameter("password");
 			Enumeration files = multi.getFileNames();
+			JSONObject job = new JSONObject();
 			
 			PrintWriter out = response.getWriter();
 			if(files.hasMoreElements()){
@@ -51,7 +54,8 @@ public class FileUpload extends HttpServlet {
 				long fileSize = file.length();
 
 				if(option.equals("decrypt") && fileName.substring(fileName.length()-8, fileName.length()-4).equals("_enc") == false){
-					out.print("type error");
+					job.put("err", "type error");
+					out.print(job);
 				}
 				else{
 					FileDAO f = new FileDAO();
@@ -74,6 +78,12 @@ public class FileUpload extends HttpServlet {
 					while(Line.size() > index){
 						tmp += Line.get(index++) + "\n";
 					}
+				
+					job.put("originalFile", fileName);
+					job.put("originalSize", f.fileSize(fileSize));
+					job.put("newFile", newName);
+					job.put("option", option);
+					job.put("tmp", tmp.replaceAll("\\\\", "/").replaceAll("\"", "\'"));
 					
 					AES aes = new AES();
 					if(option.equals("encrypt"))
@@ -82,13 +92,10 @@ public class FileUpload extends HttpServlet {
 						tmp = aes.decrypt(aes.StrToByte(tmp), aes.setKey(pw));
 					fw.write(tmp);
 					fw.close();
-				
-					HttpSession session = request.getSession(true);
-					session.setAttribute("originalFile", fileName);
-					session.setAttribute("originalSize", f.fileSize(fileSize));
-					session.setAttribute("newFile", newName);
-					session.setAttribute("newSize", f.fileSize(resultFile.length()));
-					session.setAttribute("option", option);
+					job.put("newSize", f.fileSize(resultFile.length()));
+					job.put("tmp2", tmp.replaceAll("\\\\", "/").replaceAll("\"", "\'"));
+					out.print(job);
+			 
 				}
 			}
 			
