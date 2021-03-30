@@ -8,10 +8,12 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="http://malsup.github.io/jquery.form.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous"> <!-- bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script> <!-- bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> <!-- font style -->
+<script src="http://malsup.github.io/jquery.form.js"></script> <!-- font style -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous"> <!-- jQuery -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script> <!-- jQuery -->
 <title>Insert title here</title>
 <style>
 @media (min-width: 1405px) {
@@ -28,6 +30,9 @@
 %>
 <body>
 <div class="container-fluid">
+	<div class="row mt-5 d-flex flex-row-reverse">
+		<div class="display-3" style="font-family: 'Song Myung', serif;">Encrypt / Decrypt</div>
+	</div>
 	<form id="form" enctype="multipart/form-data">
 	<div class="row align-items-center mt-5 file upload">
 		<div class="col-sm-2">
@@ -103,6 +108,7 @@
 	init();
 	
 	$(function() {
+		var newFile;
 	    $('#upload').on('click', function() {
 	    	$("#form").ajaxForm({
 				url: "<%=request.getContextPath()%>/fileUpload",
@@ -111,7 +117,7 @@
                 processData: false,
                 contentType: false,
                 type: "POST",
-                dataType:"text",
+                dataType:"json",
                 beforeSubmit: function(data, form, option){
                 	if($('#file').val() == ""){
                 		alert("select file");
@@ -123,40 +129,18 @@
                 	}
                 },
                 success: function(result){
-                	if(result == "type error"){
+                	newFile = result['newFile'];
+                	if (result['err'] == "type error"){
                 		alert('decrypt file type error!');
                 	}
                 	else{
-                		<%
-                		for(int i = 0; i < name.length; i++)
-                			value[i] = (String) session.getAttribute(name[i]);
-                		%>
                 		for(var i = 0; i < upload.length; i++)
                 			upload.item(i).disabled = 'disabled';
-                		document.getElementById('stateUpload').value = "File: <%=value[0]%>, size: <%=value[1]%>";
-                		<%
-                		int index = 0;
-                		String tmp = "";
-                		ArrayList<String> Line = f.read(value[0]);
-            			while(Line.size() > index) {
-            				tmp = Line.get(index++);
-            			%>
-            				document.getElementById('original').value += "<%=tmp.replaceAll("\\\\", "/").replaceAll("\"", "\'")%>\n";
-            			<%
-            			}
-            			%>
+                		document.getElementById('stateUpload').value = "File: "+result['originalFile']+", size: "+result['originalSize'];
+            			document.getElementById('original').value += result['tmp'];
             			document.getElementById('download').disabled = false;
-            			document.getElementById('stateDownload').value = "File: <%=value[2]%>, size: <%=value[3]%>";
-            			<%
-            			index = 0;
-            			Line = f.read(value[2]);
-            			while(Line.size() > index) {
-            				tmp = Line.get(index++);
-            			%>
-            				document.getElementById('result').value += "<%=tmp.replaceAll("\\\\", "/").replaceAll("\"", "\'")%>\n";
-            			<%
-            			}
-            			%>
+            			document.getElementById('stateDownload').value = "File: "+result['newFile']+", size: "+result['newSize'];
+            			document.getElementById('result').value += result['tmp2'];
                 	}
                 }
 	        }).submit();
@@ -165,15 +149,13 @@
 		$('#download').on('click', function() {
 	    	$.ajax({
 				url: "<%=request.getContextPath()%>/fileDownload",
-	            traditional:true,
                 type: "POST",
                 data: {
-                	file: "<%=value[2]%>"
+                	file: newFile
                 },
                 dataType:"text"
 	        })
 	        .done(function(data){
-        		<%session.invalidate();%>
         		window.location.reload();
 	        });
 		});
@@ -251,7 +233,7 @@
 		document.getElementById("result").value = "";
 		
 		<%
-		String path = "/usr/local/lib/apache-tomcat-9.0.43/webapps/block/uploadFile";
+		String path = "/Users/kjs/JSP/.metadata/.plugins/org.eclipse.wst.server.core/tmp1/wtpwebapps/block/uploadFile";
 		String[] fileNameOfPath = new File(path).list();
 		if(fileNameOfPath!=null){
 			for(int i = 0; i < fileNameOfPath.length; i++)
