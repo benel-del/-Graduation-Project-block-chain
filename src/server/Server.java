@@ -164,7 +164,7 @@ public class Server {
 		}
 		
 		System.out.println("***************** update *****************");
-		int sleepSec = 60;
+		int sleepSec = 20;
 		final ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
 		exec.scheduleAtFixedRate(new Runnable(){
 			public void run(){
@@ -183,7 +183,7 @@ public class Server {
 
 		ServerSocket server;
 		try {
-			server = new ServerSocket(5950);
+			server = new ServerSocket(5958);
 			while(true) {
 				Socket client = server.accept();
 				Sockets sockets = new Sockets(client);
@@ -322,7 +322,7 @@ public class Server {
 		return "log_" + str2[0] + str2[1] + str2[2];
 	}
 	
-	static private int updateFile(String file, String time) {
+	static private int setUpdateTime(String file, String time) {
 		// time: 2O 27 18:42
 		System.out.println(getTime() + "UPDATE LOG(last_update_time) - " + file);
 		String sql = "UPDATE LOG SET last_update_time=? WHERE real_name=?;";
@@ -513,7 +513,7 @@ public class Server {
 				if(rs.next()) {
 					if(rs.getString(1).equals(time))
 						continue;
-					updateFile(str2[6], time);
+					setUpdateTime(str2[6], time);
 					Line.add(str[3]);
 				}
 				else {

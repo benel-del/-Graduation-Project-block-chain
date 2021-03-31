@@ -60,7 +60,7 @@
 	            		alert("존재하지 않는 아이디입니다.");
 	            	}
 	            	else{
-	            		window.location.href = "logsView.jsp";
+	            		window.location.href = "logView.jsp";
 	            	}
 				})
 			})

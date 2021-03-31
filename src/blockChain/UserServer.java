@@ -51,7 +51,7 @@ public class UserServer {
 	
 	public void connect() {
 		try {
-			Socket soc = new Socket("localhost", 5950);
+			Socket soc = new Socket("localhost", 5958);
 
 			//BufferedReader brs = new BufferedReader(new InputStreamReader(soc.getInputStream()));
 			PrintWriter pw = new PrintWriter(soc.getOutputStream());
